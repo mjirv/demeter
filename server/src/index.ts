@@ -4,6 +4,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import {execSync} from 'child_process';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // defining the Express app
 const app = express();
@@ -22,9 +25,6 @@ app.use(cors());
 
 // adding morgan to log HTTP requests
 app.use(morgan('combined'));
-
-const DBT_PROJECT_PATH = '/home/michael/jaffle_shop'; // TODO: refactor this into an env variable or config
-const DBT_TARGET = 'dev'; // TODO: refactor this into an optional env variable
 
 /* Lists all available metrics */
 app.get('/', (req, res) => {
@@ -58,10 +58,17 @@ app.post('/run', (req, res) => {
   }
   try {
     const raw_output = execSync(
-      `cd ${DBT_PROJECT_PATH} &&\
-            dbt run-operation --target ${DBT_TARGET} dbt_metrics_api.run_metric --args '${JSON.stringify(
-        {metric_name, grain, dimensions, start_date, end_date, format}
-      )}'
+      `cd ${process.env.DBT_PROJECT_PATH} &&\
+            dbt run-operation --target ${
+              process.env.DBT_TARGET
+            } dbt_metrics_api.run_metric --args '${JSON.stringify({
+        metric_name,
+        grain,
+        dimensions,
+        start_date,
+        end_date,
+        format,
+      })}'
         `,
       {encoding: 'utf-8'}
     );
