@@ -5,6 +5,6 @@ Generates a REST API to query your dbt metrics using https://github.com/dbt-labs
 
 ## Quickstart
 1. Start by making sure node is installed.
-  a. Run `node --version`
-  b. If there is no output or node is not found, follow the steps at https://heynode.com/tutorial/install-nodejs-locally-nvm/ to install Node.
+  - Run `node --version`
+  - If there is no output or node is not found, follow the steps at https://heynode.com/tutorial/install-nodejs-locally-nvm/ to install Node.
 2. TODO 
