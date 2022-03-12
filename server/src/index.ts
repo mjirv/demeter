@@ -6,7 +6,7 @@ import morgan from 'morgan';
 import {execSync} from 'child_process';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({path: `.env.${process.env.NODE_ENV || 'local'}`});
 
 // defining the Express app
 const app = express();
