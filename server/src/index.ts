@@ -59,7 +59,7 @@ app.post('/run', (req, res) => {
   try {
     const raw_output = execSync(
       `cd ${DBT_PROJECT_PATH} &&\
-            dbt run-operation --target ${DBT_TARGET} run_metric --args '${JSON.stringify(
+            dbt run-operation --target ${DBT_TARGET} dbt_metrics_api.run_metric --args '${JSON.stringify(
         {metric_name, grain, dimensions, start_date, end_date, format}
       )}'
         `,
