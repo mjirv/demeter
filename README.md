@@ -21,20 +21,20 @@ Generates a REST API to query your dbt metrics using https://github.com/dbt-labs
 3. **✅ Run** - `cd dbt_packages/dbt_metrics_api && node dist`
 ### Routes
 dbt-metrics-api has 3 routes:
-1. GET `/metrics`
+1. **GET `/metrics`**
     - returns a JSON array of your project's metrics
     - supports "name", "type", "model", and "package_name" query strings for filtering
     - ```json
         $ curl -X GET "http://localhost:3002/metrics?type=count&package_name=jaffle_shop"
         [{"unique_id":"metric.jaffle_shop.orders","package_name":"jaffle_shop","model":"ref('orders')","name":"orders","description":"The number of orders","label":"Orders","type":"count","filters":[],"time_grains":["day","week","month","quarter","year"],"dimensions":["status","customer_id"]},{"unique_id":"metric.jaffle_shop.orders2","package_name":"jaffle_shop","model":"ref('orders')","name":"orders2","description":"The number of orders","label":"Orders","type":"count","filters":[],"time_grains":["day","week","month","quarter","year"],"dimensions":["status","customer_id"]}]
         ```
-2. GET `/metrics/:metric_name`
+2. **GET `/metrics/:metric_name`**
     - returns a JSON object with keys `unique_id, package_name, model, name, description, label, type, filters, time_grains, dimensions`
     - ```json
         $ curl -X GET "http://localhost:3002/metrics/orders"
         {"unique_id":"metric.jaffle_shop.orders","package_name":"jaffle_shop","model":"ref('orders')","name":"orders","description":"The number of orders","label":"Orders","type":"count","filters":[],"time_grains":["day","week","month","quarter","year"],"dimensions":["status","customer_id"]}
         ```
-3. POST `/metrics/:metric_name`
+3. **POST `/metrics/:metric_name`**
     - Queries a metric and returns the result
     - Accepts a JSON object in the request body with the following properties: `grain, dimensions, start_date, end_date` (`start_date` and `end_date` are optional)
     - Returns a JSON object or CSV depending on your `Accept:` header (`application/json` or `text/csv`)
