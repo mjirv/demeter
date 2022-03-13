@@ -67,7 +67,7 @@ const listMetrics = (name?: string, selectors: Selectors = {}) => {
 };
 
 /* Lists all available metrics */
-app.get('/list', (req, res) => {
+app.get('/metrics', (req, res) => {
   res.type('application/json');
   const {name, type, model} = req.query as Record<string, string>;
   try {
@@ -79,9 +79,22 @@ app.get('/list', (req, res) => {
   }
 });
 
+/* Gets a metric's information */
+app.get('/metrics/:name', (req, res) => {
+  const {name} = req.params;
+  try {
+    const output = JSON.stringify(listMetrics(name));
+    res.send(output);
+  } catch (error) {
+    console.error(error);
+    res.status(404).send(error);
+  }
+});
+
 /* Runs a given metric */
-app.post('/run', (req, res) => {
-  const {metric_name, grain, dimensions, start_date, end_date} = req.body;
+app.post('/metrics/:metric_name', (req, res) => {
+  const {metric_name} = req.params;
+  const {grain, dimensions, start_date, end_date} = req.body;
 
   let format: string;
   switch (req.accepts(['json', 'csv'])) {
