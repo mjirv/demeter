@@ -14,8 +14,6 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config({ path: `.env.${process.env.NODE_ENV || 'local'}` });
 // defining the Express app
 const app = (0, express_1.default)();
-// defining an array to work as the database (temporary solution)
-const ads = [{ title: 'Hello, world (again)!' }];
 // adding Helmet to enhance your API's security
 app.use((0, helmet_1.default)());
 // using bodyParser to parse JSON bodies into JS objects
@@ -24,9 +22,38 @@ app.use(body_parser_1.default.json());
 app.use((0, cors_1.default)());
 // adding morgan to log HTTP requests
 app.use((0, morgan_1.default)('combined'));
+const listMetrics = (name, selectors = {}) => {
+    const { type, model } = selectors;
+    // TODO: added some basic replacement to prevent bash injection, but I should clean this up here and elsewhere
+    const select = name ? `--select "metric:${name.replace(/"/g, '')}"` : '';
+    let metrics = JSON.parse('[' +
+        (0, child_process_1.execSync)(`cd ${process.env.DBT_PROJECT_PATH} &&\
+        dbt ls --resource-type metric --output json \
+        --output-keys "name model label description type time_grains dimensions filters unique_id" \
+        ${select}`, { encoding: 'utf-8' })
+            .trimEnd()
+            .replace(/\n/g, ',') +
+        ']');
+    if (type) {
+        metrics = metrics.filter(metric => metric.type === type);
+    }
+    if (model) {
+        metrics = metrics.filter(metric => metric.model === model);
+    }
+    return metrics;
+};
 /* Lists all available metrics */
-app.get('/', (req, res) => {
-    res.send(ads);
+app.get('/list', (req, res) => {
+    res.type('application/json');
+    const { name, type, model } = req.query;
+    try {
+        const output = JSON.stringify(listMetrics(name, { type, model }));
+        res.send(output);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(404).send(error);
+    }
 });
 /* Runs a given metric */
 app.post('/run', (req, res) => {

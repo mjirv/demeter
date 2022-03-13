@@ -11,9 +11,6 @@ dotenv.config({path: `.env.${process.env.NODE_ENV || 'local'}`});
 // defining the Express app
 const app = express();
 
-// defining an array to work as the database (temporary solution)
-const ads = [{title: 'Hello, world (again)!'}];
-
 // adding Helmet to enhance your API's security
 app.use(helmet());
 
@@ -26,9 +23,60 @@ app.use(cors());
 // adding morgan to log HTTP requests
 app.use(morgan('combined'));
 
+interface DBTResource {
+  name: string;
+  label: string;
+  description: string;
+  type: string;
+  time_grains: string;
+  dimensions: string[];
+  filters: string[];
+  unique_id: string;
+  model: string;
+}
+
+interface Selectors {
+  type?: string;
+  model?: string;
+}
+const listMetrics = (name?: string, selectors: Selectors = {}) => {
+  const {type, model} = selectors;
+
+  // TODO: added some basic replacement to prevent bash injection, but I should clean this up here and elsewhere
+  const select = name ? `--select "metric:${name.replace(/"/g, '')}"` : '';
+  let metrics = JSON.parse(
+    '[' +
+      execSync(
+        `cd ${process.env.DBT_PROJECT_PATH} &&\
+        dbt ls --resource-type metric --output json \
+        --output-keys "name model label description type time_grains dimensions filters unique_id" \
+        ${select}`,
+        {encoding: 'utf-8'}
+      )
+        .trimEnd()
+        .replace(/\n/g, ',') +
+      ']'
+  ) as DBTResource[];
+  if (type) {
+    metrics = metrics.filter(metric => metric.type === type);
+  }
+  if (model) {
+    metrics = metrics.filter(metric => metric.model === model);
+  }
+  return metrics;
+};
+
 /* Lists all available metrics */
-app.get('/', (req, res) => {
-  res.send(ads);
+app.get('/list', (req, res) => {
+  res.type('application/json');
+  const {name, type, model} = req.query as Record<string, string>;
+  try {
+    const output = JSON.stringify(listMetrics(name, {type, model}));
+    res.send(output);
+  } catch (error) {
+    console.error(error);
+    res.status(404).send(error);
+  }
 });
 
 /* Runs a given metric */
