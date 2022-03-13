@@ -1,4 +1,5 @@
 # dbt Metrics API
+__TOC__
 
 ## About
 Generates a REST API to query your dbt metrics using https://github.com/dbt-labs/dbt_metrics
