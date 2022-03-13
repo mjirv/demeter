@@ -147,7 +147,7 @@ app.post('/metrics/:metric_name', (req, res) => {
   try {
     const raw_output = execSync(
       `cd ${process.env.DBT_PROJECT_PATH} &&\
-            dbt --no-partial-parse run-operation --target ${
+            dbt run-operation --target ${
               process.env.DBT_TARGET
             } dbt_metrics_api.run_metric --args '${JSON.stringify({
         metric_name,
@@ -161,7 +161,7 @@ app.post('/metrics/:metric_name', (req, res) => {
       {encoding: 'utf-8'}
     );
 
-    const BREAK_STRING = '<<<MAPI_BEGIN>>>\n';
+    const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
     const output = raw_output.slice(
       raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length
     );
