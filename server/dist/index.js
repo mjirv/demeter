@@ -23,13 +23,13 @@ app.use((0, cors_1.default)());
 // adding morgan to log HTTP requests
 app.use((0, morgan_1.default)('combined'));
 const listMetrics = (name, selectors = {}) => {
-    const { type, model } = selectors;
+    const { type, model, package_name } = selectors;
     // TODO: added some basic replacement to prevent bash injection, but I should clean this up here and elsewhere
     const select = name ? `--select "metric:${name.replace(/"/g, '')}"` : '';
     let metrics = JSON.parse('[' +
         (0, child_process_1.execSync)(`cd ${process.env.DBT_PROJECT_PATH} &&\
         dbt ls --resource-type metric --output json \
-        --output-keys "name model label description type time_grains dimensions filters unique_id" \
+        --output-keys "name model label description type time_grains dimensions filters unique_id package_name" \
         ${select}`, { encoding: 'utf-8' })
             .trimEnd()
             .replace(/\n/g, ',') +
@@ -40,14 +40,17 @@ const listMetrics = (name, selectors = {}) => {
     if (model) {
         metrics = metrics.filter(metric => metric.model === model);
     }
+    if (package_name) {
+        metrics = metrics.filter(metric => metric.package_name === package_name);
+    }
     return metrics;
 };
 /* Lists all available metrics */
 app.get('/metrics', (req, res) => {
     res.type('application/json');
-    const { name, type, model } = req.query;
+    const { name, type, model, package_name } = req.query;
     try {
-        const output = JSON.stringify(listMetrics(name, { type, model }));
+        const output = JSON.stringify(listMetrics(name, { type, model, package_name }));
         res.send(output);
     }
     catch (error) {

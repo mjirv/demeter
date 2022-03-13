@@ -33,14 +33,16 @@ interface DBTResource {
   filters: string[];
   unique_id: string;
   model: string;
+  package_name: string;
 }
 
 interface Selectors {
   type?: string;
   model?: string;
+  package_name?: string;
 }
 const listMetrics = (name?: string, selectors: Selectors = {}) => {
-  const {type, model} = selectors;
+  const {type, model, package_name} = selectors;
 
   // TODO: added some basic replacement to prevent bash injection, but I should clean this up here and elsewhere
   const select = name ? `--select "metric:${name.replace(/"/g, '')}"` : '';
@@ -49,7 +51,7 @@ const listMetrics = (name?: string, selectors: Selectors = {}) => {
       execSync(
         `cd ${process.env.DBT_PROJECT_PATH} &&\
         dbt ls --resource-type metric --output json \
-        --output-keys "name model label description type time_grains dimensions filters unique_id" \
+        --output-keys "name model label description type time_grains dimensions filters unique_id package_name" \
         ${select}`,
         {encoding: 'utf-8'}
       )
@@ -63,15 +65,20 @@ const listMetrics = (name?: string, selectors: Selectors = {}) => {
   if (model) {
     metrics = metrics.filter(metric => metric.model === model);
   }
+  if (package_name) {
+    metrics = metrics.filter(metric => metric.package_name === package_name);
+  }
   return metrics;
 };
 
 /* Lists all available metrics */
 app.get('/metrics', (req, res) => {
   res.type('application/json');
-  const {name, type, model} = req.query as Record<string, string>;
+  const {name, type, model, package_name} = req.query as Record<string, string>;
   try {
-    const output = JSON.stringify(listMetrics(name, {type, model}));
+    const output = JSON.stringify(
+      listMetrics(name, {type, model, package_name})
+    );
     res.send(output);
   } catch (error) {
     console.error(error);
