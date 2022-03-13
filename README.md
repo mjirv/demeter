@@ -2,7 +2,7 @@
 - [dbt Metrics API](#dbt-metrics-api)
   - [About](#about)
   - [Installation](#installation)
-    - [Pre-Requisites](#pre-requisites)
+    - [Prerequisites](#prerequisites)
     - [Quickstart](#quickstart)
   - [Usage](#usage)
     - [Routes](#routes)
@@ -15,7 +15,7 @@
 Generates a REST API to query your dbt metrics using https://github.com/dbt-labs/dbt_metrics
 
 ## Installation
-### Pre-Requisites
+### Prerequisites
 1. A [dbt project](https://docs.getdbt.com/tutorial/setting-up)
 2. Node
     - Run `node --version`
