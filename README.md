@@ -25,8 +25,8 @@ dbt-metrics-api has 3 routes:
     - returns a JSON array of you metrics
     - supports "name", "type", and "model" query strings
     - ```
-    michael@DESKTOP-URS6SAQ:~/metrics-api/server$ curl -X GET "http://localhost:3002/metrics?type=count"
-        [{"unique_id":"metric.jaffle_shop.orders","model":"ref('orders')","name":"orders","description":"The number of orders","label":"Orders","type":"count","filters":[],"time_grains":["day","week","month","quarter","year"],"dimensions":["status","customer_id"]},{"unique_id":"metric.jaffle_shop.orders2","model":"ref('orders')","name":"orders2","description":"The number of orders","label":"Orders","type":"count","filters":[],"time_grains":["day","week","month","quarter","year"],"dimensions":["status","customer_id"]}]
-    ```
+        michael@DESKTOP-URS6SAQ:~/metrics-api/server$ curl -X GET "http://localhost:3002/metrics?type=count"
+            [{"unique_id":"metric.jaffle_shop.orders","model":"ref('orders')","name":"orders","description":"The number of orders","label":"Orders","type":"count","filters":[],"time_grains":["day","week","month","quarter","year"],"dimensions":["status","customer_id"]},{"unique_id":"metric.jaffle_shop.orders2","model":"ref('orders')","name":"orders2","description":"The number of orders","label":"Orders","type":"count","filters":[],"time_grains":["day","week","month","quarter","year"],"dimensions":["status","customer_id"]}]
+        ```
 2. GET `/metrics/:metric_name`
 3. POST `/metrics/:metric_name`
