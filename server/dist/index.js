@@ -112,7 +112,7 @@ app.post('/metrics/:metric_name', (req, res) => {
     }
     try {
         const raw_output = (0, child_process_1.execSync)(`cd ${process.env.DBT_PROJECT_PATH} &&\
-            dbt run-operation --target ${process.env.DBT_TARGET} dbt_metrics_api.run_metric --args '${JSON.stringify({
+            dbt --no-partial-parse run-operation --target ${process.env.DBT_TARGET} dbt_metrics_api.run_metric --args '${JSON.stringify({
             metric_name,
             grain,
             dimensions,
@@ -121,7 +121,8 @@ app.post('/metrics/:metric_name', (req, res) => {
             format,
         })}'
         `, { encoding: 'utf-8' });
-        const output = raw_output.slice(raw_output.indexOf('\n') + 1);
+        const BREAK_STRING = '<<<MAPI_BEGIN>>>\n';
+        const output = raw_output.slice(raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length);
         res.send(output);
     }
     catch (error) {
