@@ -1,5 +1,15 @@
 # dbt Metrics API
-__TOC__
+- [dbt Metrics API](#dbt-metrics-api)
+  - [About](#about)
+  - [Installation](#installation)
+    - [Pre-Requisites](#pre-requisites)
+    - [Quickstart](#quickstart)
+  - [Usage](#usage)
+    - [Routes](#routes)
+      - [GET `/metrics`](#get-metrics)
+      - [GET `/metrics/:metric_name`](#get-metricsmetric_name)
+      - [POST `/metrics/:metric_name`](#post-metricsmetric_name)
+    - [Authentication](#authentication)
 
 ## About
 Generates a REST API to query your dbt metrics using https://github.com/dbt-labs/dbt_metrics
