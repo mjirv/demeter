@@ -59,7 +59,9 @@ app.get('/metrics', (req, res) => {
 app.get('/metrics/:name', (req, res) => {
     const { name } = req.params;
     try {
-        const output = JSON.stringify(listMetrics(name));
+        const [metric] = listMetrics(name);
+        console.info(`metric: ${metric}`);
+        const output = JSON.stringify(metric);
         res.send(output);
     }
     catch (error) {
