@@ -34,6 +34,7 @@
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
     "helmet": "^5.0.2",
+    "kable-node-express": "^2.3.13",
     "morgan": "^1.10.0"
   }
 }

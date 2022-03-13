@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import {execSync} from 'child_process';
 import dotenv from 'dotenv';
+import {Kable} from 'kable-node-express';
 
 dotenv.config({path: `.env.${process.env.NODE_ENV || 'local'}`});
 
@@ -22,6 +23,23 @@ app.use(cors());
 
 // adding morgan to log HTTP requests
 app.use(morgan('combined'));
+
+// Kable for authentication
+const kable =
+  process.env.KABLE_CLIENT_ID &&
+  new Kable({
+    clientId: process.env.KABLE_CLIENT_ID,
+    clientSecret: process.env.KABLE_CLIENT_SECRET,
+    environment: process.env.KABLE_ENV === 'LIVE' ? 'LIVE' : 'TEST',
+    baseUrl:
+      process.env.KABLE_ENV === 'LIVE'
+        ? 'https://live.kable.io'
+        : 'https://test.kable.io',
+    debug: process.env.KABLE_ENV === 'LIVE',
+    recordAuthentication: true,
+  });
+
+kable && app.use(kable.authenticate);
 
 interface DBTResource {
   name: string;

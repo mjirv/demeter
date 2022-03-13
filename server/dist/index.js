@@ -11,6 +11,7 @@ const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
 const child_process_1 = require("child_process");
 const dotenv_1 = __importDefault(require("dotenv"));
+const kable_node_express_1 = require("kable-node-express");
 dotenv_1.default.config({ path: `.env.${process.env.NODE_ENV || 'local'}` });
 // defining the Express app
 const app = (0, express_1.default)();
@@ -22,6 +23,19 @@ app.use(body_parser_1.default.json());
 app.use((0, cors_1.default)());
 // adding morgan to log HTTP requests
 app.use((0, morgan_1.default)('combined'));
+// Kable for authentication
+const kable = process.env.KABLE_CLIENT_ID &&
+    new kable_node_express_1.Kable({
+        clientId: process.env.KABLE_CLIENT_ID,
+        clientSecret: process.env.KABLE_CLIENT_SECRET,
+        environment: process.env.KABLE_ENV === 'LIVE' ? 'LIVE' : 'TEST',
+        baseUrl: process.env.KABLE_ENV === 'LIVE'
+            ? 'https://live.kable.io'
+            : 'https://test.kable.io',
+        debug: process.env.KABLE_ENV === 'LIVE',
+        recordAuthentication: true,
+    });
+kable && app.use(kable.authenticate);
 const listMetrics = (name, selectors = {}) => {
     const { type, model, package_name } = selectors;
     // TODO: added some basic replacement to prevent bash injection, but I should clean this up here and elsewhere
