@@ -147,19 +147,7 @@ app.post('/metrics/:metric_name', (req, res) => {
         res.status(404).send(error);
     }
 });
-/* GrapQL methods */
-// Construct a schema, using GraphQL schema language
-// const schema = buildSchema(`
-//   type Query {
-//     hello: String
-//   }
-// `);
-// // The root provides a resolver function for each API endpoint
-// const root = {
-//   hello: () => {
-//     return 'Hello world!';
-//   },
-// };
+/* GraphQL methods */
 const metricToGraphQLType = (metric) => new graphql_1.GraphQLObjectType({
     name: metric.name,
     fields: {
