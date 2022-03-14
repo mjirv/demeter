@@ -6,6 +6,17 @@ import morgan from 'morgan';
 import {execSync} from 'child_process';
 import dotenv from 'dotenv';
 import {Kable} from 'kable-node-express';
+import {graphqlHTTP} from 'express-graphql';
+import {
+  buildSchema,
+  FieldNode,
+  GraphQLFieldResolver,
+  GraphQLFloat,
+  GraphQLList,
+  GraphQLObjectType,
+  GraphQLSchema,
+  GraphQLString,
+} from 'graphql';
 
 dotenv.config({path: `.env.${process.env.NODE_ENV || 'local'}`});
 
@@ -13,7 +24,12 @@ dotenv.config({path: `.env.${process.env.NODE_ENV || 'local'}`});
 const app = express();
 
 // adding Helmet to enhance your API's security
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy:
+      process.env.NODE_ENV === 'production' ? undefined : false,
+  })
+);
 
 // using bodyParser to parse JSON bodies into JS objects
 app.use(bodyParser.json());
@@ -60,6 +76,9 @@ interface Selectors {
   package_name?: string;
 }
 const listMetrics = (name?: string, selectors: Selectors = {}) => {
+  console.debug(
+    `called listMetrics with params ${JSON.stringify({name, selectors})}`
+  );
   const {type, model, package_name} = selectors;
 
   // TODO: added some basic replacement to prevent bash injection, but I should clean this up here and elsewhere
@@ -86,7 +105,51 @@ const listMetrics = (name?: string, selectors: Selectors = {}) => {
   if (package_name) {
     metrics = metrics.filter(metric => metric.package_name === package_name);
   }
+  console.debug(`metrics: ${JSON.stringify(metrics)}`);
   return metrics;
+};
+
+type Grain = 'day' | 'week' | 'month' | 'quarter' | 'year';
+interface QueryParams {
+  metric_name: string;
+  grain: Grain;
+  dimensions?: string[];
+  start_date?: string;
+  end_date?: string;
+  format?: 'csv' | 'json';
+}
+
+const queryMetric = (params: QueryParams) => {
+  console.debug(`called queryMetric with params JSON.stringify(${params})`);
+  const {
+    metric_name,
+    grain,
+    dimensions,
+    start_date,
+    end_date,
+    format = 'json',
+  } = params;
+
+  const raw_output = execSync(
+    `cd ${process.env.DBT_PROJECT_PATH} &&\
+          dbt run-operation --target ${
+            process.env.DBT_TARGET
+          } dbt_metrics_api.run_metric --args '${JSON.stringify({
+      metric_name,
+      grain,
+      dimensions,
+      start_date,
+      end_date,
+      format,
+    })}'
+      `,
+    {encoding: 'utf-8'}
+  );
+
+  const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
+  return raw_output.slice(
+    raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length
+  );
 };
 
 /* Lists all available metrics */
@@ -123,7 +186,7 @@ app.post('/metrics/:metric_name', (req, res) => {
   const {metric_name} = req.params;
   const {grain, dimensions, start_date, end_date} = req.body;
 
-  let format: string;
+  let format: 'csv' | 'json';
   switch (req.accepts(['json', 'csv'])) {
     case 'csv':
       format = 'csv';
@@ -145,32 +208,108 @@ app.post('/metrics/:metric_name', (req, res) => {
       .send({error: 'grain is a required property; no grain given'});
   }
   try {
-    const raw_output = execSync(
-      `cd ${process.env.DBT_PROJECT_PATH} &&\
-            dbt run-operation --target ${
-              process.env.DBT_TARGET
-            } dbt_metrics_api.run_metric --args '${JSON.stringify({
-        metric_name,
-        grain,
-        dimensions,
-        start_date,
-        end_date,
-        format,
-      })}'
-        `,
-      {encoding: 'utf-8'}
-    );
-
-    const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
-    const output = raw_output.slice(
-      raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length
-    );
+    const output = queryMetric({
+      metric_name,
+      grain,
+      dimensions,
+      start_date,
+      end_date,
+      format,
+    });
     res.send(output);
   } catch (error) {
     console.error(error);
     res.status(404).send(error);
   }
 });
+
+/* GrapQL methods */
+// Construct a schema, using GraphQL schema language
+// const schema = buildSchema(`
+//   type Query {
+//     hello: String
+//   }
+// `);
+
+// // The root provides a resolver function for each API endpoint
+// const root = {
+//   hello: () => {
+//     return 'Hello world!';
+//   },
+// };
+
+const metricToGraphQLType = (metric: DBTResource) =>
+  new GraphQLObjectType({
+    name: metric.name,
+    fields: {
+      period: {type: GraphQLString}, // TODO: should this be date?
+      [metric.name]: {type: GraphQLFloat},
+      // eslint-disable-next-line node/no-unsupported-features/es-builtins
+      ...Object.fromEntries(
+        metric.dimensions.map(dimension => [dimension, {type: GraphQLString}]) // TODO: they might be other things
+      ),
+    },
+  });
+
+const availableMetrics = listMetrics();
+
+const QueryType = new GraphQLObjectType({
+  name: 'Query',
+  fields: {
+    // eslint-disable-next-line node/no-unsupported-features/es-builtins
+    ...Object.fromEntries(
+      availableMetrics.map(metric => [
+        metric.name,
+        {
+          type: metricToGraphQLType(metric),
+          args: {
+            grain: {type: GraphQLString},
+            start_date: {type: GraphQLString},
+            end_date: {type: GraphQLString},
+          },
+        },
+      ])
+    ),
+  },
+});
+
+const schema = new GraphQLSchema({
+  query: QueryType,
+});
+
+interface MetricArgs {
+  grain: Grain;
+  start_date?: string;
+  end_date?: string;
+}
+
+function metricResolver(
+  args: MetricArgs,
+  _context: any,
+  {fieldName, fieldNodes}: {fieldName: string; fieldNodes: FieldNode[]}
+) {
+  console.info(JSON.stringify(fieldNodes));
+  return queryMetric({
+    metric_name: fieldName,
+    dimensions: fieldNodes.map(node => node.name.value),
+    ...args,
+  });
+}
+
+const metrics = availableMetrics.map(metric => [metric.name, metricResolver]);
+// eslint-disable-next-line node/no-unsupported-features/es-builtins
+const root = Object.fromEntries(metrics);
+
+console.debug(`available: ${JSON.stringify(metrics)}`);
+
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema: schema,
+    rootValue: root,
+    graphiql: true,
+  })
+);
 
 // starting the server
 const port = process.env.PORT ?? 3001;
