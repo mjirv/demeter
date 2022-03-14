@@ -58,7 +58,8 @@ dbt-metrics-api has 4 routes:
     ```
 #### POST `/graphql`
 - GraphQL API for your metrics
-- See http://localhost:3002/graphql to see the GraphiQL client and schema
+- Visit `YOUR_SERVER_PATH/graphql` (e.g. http://localhost:3002/graphql) to see the GraphiQL client and schema
+![graphql](https://user-images.githubusercontent.com/5953854/158102577-f935b647-88f4-4180-b161-81f86a454ccb.PNG)
 
 ### Authentication
 dbt-metrics-api supports [Kable](https://kable.io) for authentication.
