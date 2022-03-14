@@ -13,7 +13,9 @@
     - [Authentication](#authentication)
 
 ## About
-Generates a REST API to query your dbt metrics using https://github.com/dbt-labs/dbt_metrics
+Generates a REST API (including a GraphQL endpoint) to query your dbt metrics using https://github.com/dbt-labs/dbt_metrics
+
+![graphql](https://user-images.githubusercontent.com/5953854/158102577-f935b647-88f4-4180-b161-81f86a454ccb.PNG)
 
 ## Installation
 ### Prerequisites
@@ -59,7 +61,6 @@ dbt-metrics-api has 4 routes:
 #### POST `/graphql`
 - GraphQL API for your metrics
 - Visit `YOUR_SERVER_PATH/graphql` (e.g. http://localhost:3002/graphql) to see the GraphiQL client and schema
-![graphql](https://user-images.githubusercontent.com/5953854/158102577-f935b647-88f4-4180-b161-81f86a454ccb.PNG)
 
 ### Authentication
 dbt-metrics-api supports [Kable](https://kable.io) for authentication.
