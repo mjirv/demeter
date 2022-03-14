@@ -105,7 +105,6 @@ const listMetrics = (name?: string, selectors: Selectors = {}) => {
   if (package_name) {
     metrics = metrics.filter(metric => metric.package_name === package_name);
   }
-  console.debug(`metrics: ${JSON.stringify(metrics)}`);
   return metrics;
 };
 
@@ -120,7 +119,7 @@ interface QueryParams {
 }
 
 const queryMetric = (params: QueryParams) => {
-  console.debug(`called queryMetric with params JSON.stringify(${params})`);
+  console.debug(`called queryMetric with params ${JSON.stringify(params)}`);
   const {
     metric_name,
     grain,
@@ -172,7 +171,6 @@ app.get('/metrics/:name', (req, res) => {
   const {name} = req.params;
   try {
     const [metric] = listMetrics(name);
-    console.info(`metric: ${metric}`);
     const output = JSON.stringify(metric);
     res.send(output);
   } catch (error) {
@@ -288,10 +286,13 @@ function metricResolver(
   _context: any,
   {fieldName, fieldNodes}: {fieldName: string; fieldNodes: FieldNode[]}
 ) {
-  console.info(JSON.stringify(fieldNodes));
+  const NON_DIMENSION_FIELDS = [fieldName, 'period'];
+  const [node] = fieldNodes;
   return queryMetric({
     metric_name: fieldName,
-    dimensions: fieldNodes.map(node => node.name.value),
+    dimensions: node.selectionSet?.selections
+      .map(selection => (selection as FieldNode).name.value)
+      .filter(field => !NON_DIMENSION_FIELDS.includes(field)),
     ...args,
   });
 }

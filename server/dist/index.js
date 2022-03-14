@@ -62,11 +62,10 @@ const listMetrics = (name, selectors = {}) => {
     if (package_name) {
         metrics = metrics.filter(metric => metric.package_name === package_name);
     }
-    console.debug(`metrics: ${JSON.stringify(metrics)}`);
     return metrics;
 };
 const queryMetric = (params) => {
-    console.debug(`called queryMetric with params JSON.stringify(${params})`);
+    console.debug(`called queryMetric with params ${JSON.stringify(params)}`);
     const { metric_name, grain, dimensions, start_date, end_date, format = 'json', } = params;
     const raw_output = (0, child_process_1.execSync)(`cd ${process.env.DBT_PROJECT_PATH} &&\
           dbt run-operation --target ${process.env.DBT_TARGET} dbt_metrics_api.run_metric --args '${JSON.stringify({
@@ -99,7 +98,6 @@ app.get('/metrics/:name', (req, res) => {
     const { name } = req.params;
     try {
         const [metric] = listMetrics(name);
-        console.info(`metric: ${metric}`);
         const output = JSON.stringify(metric);
         res.send(output);
     }
@@ -193,10 +191,12 @@ const schema = new graphql_1.GraphQLSchema({
     query: QueryType,
 });
 function metricResolver(args, _context, { fieldName, fieldNodes }) {
-    console.info(JSON.stringify(fieldNodes));
+    var _a;
+    const NON_DIMENSION_FIELDS = [fieldName, 'period'];
+    const [node] = fieldNodes;
     return queryMetric({
         metric_name: fieldName,
-        dimensions: fieldNodes.map(node => node.name.value),
+        dimensions: (_a = node.selectionSet) === null || _a === void 0 ? void 0 : _a.selections.map(selection => selection.name.value).filter(field => !NON_DIMENSION_FIELDS.includes(field)),
         ...args,
     });
 }
