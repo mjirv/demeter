@@ -9,6 +9,7 @@
       - [GET `/metrics`](#get-metrics)
       - [GET `/metrics/:metric_name`](#get-metricsmetric_name)
       - [POST `/metrics/:metric_name`](#post-metricsmetric_name)
+      - [POST `/graphql`](#post-graphql)
     - [Authentication](#authentication)
 
 ## About
@@ -33,7 +34,7 @@ Generates a REST API to query your dbt metrics using https://github.com/dbt-labs
 
 ## Usage
 ### Routes
-dbt-metrics-api has 3 routes:
+dbt-metrics-api has 4 routes:
 #### GET `/metrics`
 - returns a JSON array of your project's metrics
 - supports "name", "type", "model", and "package_name" query strings for filtering
@@ -55,6 +56,10 @@ dbt-metrics-api has 3 routes:
     $ curl http://localhost:3002/metrics/orders -H "Content-Type: application/json" -H "Accept: application/json" -d '{"grain": "year", "start_date": "2017-01-01", "end_date": "2019-01-01"}'
     [{"period": "2017-01-01", "orders": 0.0}, {"period": "2018-01-01", "orders": 99.0}, {"period": "2019-01-01", "orders": 0.0}]
     ```
+#### POST `/graphql`
+- GraphQL API for your metrics
+- Visit `YOUR_SERVER_PATH/graphql` (e.g. http://localhost:3002/graphql) to see the GraphiQL client and schema
+![graphql](https://user-images.githubusercontent.com/5953854/158102577-f935b647-88f4-4180-b161-81f86a454ccb.PNG)
 
 ### Authentication
 dbt-metrics-api supports [Kable](https://kable.io) for authentication.
