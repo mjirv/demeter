@@ -77,6 +77,7 @@ const queryMetric = (params) => {
         format,
     })}'
       `, { encoding: 'utf-8' });
+    console.debug(raw_output);
     const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
     return raw_output.slice(raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length);
 };
@@ -177,7 +178,7 @@ const QueryType = new graphql_1.GraphQLObjectType({
         ...Object.fromEntries(availableMetrics.map(metric => [
             metric.name,
             {
-                type: metricToGraphQLType(metric),
+                type: new graphql_1.GraphQLList(metricToGraphQLType(metric)),
                 args: {
                     grain: { type: graphql_1.GraphQLString },
                     start_date: { type: graphql_1.GraphQLString },
@@ -194,11 +195,11 @@ function metricResolver(args, _context, { fieldName, fieldNodes }) {
     var _a;
     const NON_DIMENSION_FIELDS = [fieldName, 'period'];
     const [node] = fieldNodes;
-    return queryMetric({
+    return JSON.parse(queryMetric({
         metric_name: fieldName,
         dimensions: (_a = node.selectionSet) === null || _a === void 0 ? void 0 : _a.selections.map(selection => selection.name.value).filter(field => !NON_DIMENSION_FIELDS.includes(field)),
         ...args,
-    });
+    }));
 }
 const metrics = availableMetrics.map(metric => [metric.name, metricResolver]);
 // eslint-disable-next-line node/no-unsupported-features/es-builtins

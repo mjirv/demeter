@@ -144,7 +144,7 @@ const queryMetric = (params: QueryParams) => {
       `,
     {encoding: 'utf-8'}
   );
-
+  console.debug(raw_output);
   const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
   return raw_output.slice(
     raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length
@@ -259,7 +259,7 @@ const QueryType = new GraphQLObjectType({
       availableMetrics.map(metric => [
         metric.name,
         {
-          type: metricToGraphQLType(metric),
+          type: new GraphQLList(metricToGraphQLType(metric)),
           args: {
             grain: {type: GraphQLString},
             start_date: {type: GraphQLString},
@@ -288,13 +288,15 @@ function metricResolver(
 ) {
   const NON_DIMENSION_FIELDS = [fieldName, 'period'];
   const [node] = fieldNodes;
-  return queryMetric({
-    metric_name: fieldName,
-    dimensions: node.selectionSet?.selections
-      .map(selection => (selection as FieldNode).name.value)
-      .filter(field => !NON_DIMENSION_FIELDS.includes(field)),
-    ...args,
-  });
+  return JSON.parse(
+    queryMetric({
+      metric_name: fieldName,
+      dimensions: node.selectionSet?.selections
+        .map(selection => (selection as FieldNode).name.value)
+        .filter(field => !NON_DIMENSION_FIELDS.includes(field)),
+      ...args,
+    })
+  );
 }
 
 const metrics = availableMetrics.map(metric => [metric.name, metricResolver]);
