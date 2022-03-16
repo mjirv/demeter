@@ -168,7 +168,7 @@ const QueryType = new graphql_1.GraphQLObjectType({
             {
                 type: new graphql_1.GraphQLList(metricToGraphQLType(metric)),
                 args: {
-                    grain: { type: graphql_1.GraphQLString },
+                    grain: { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) },
                     start_date: { type: graphql_1.GraphQLString },
                     end_date: { type: graphql_1.GraphQLString },
                 },
@@ -179,6 +179,7 @@ const QueryType = new graphql_1.GraphQLObjectType({
 const schema = new graphql_1.GraphQLSchema({
     query: QueryType,
 });
+console.info((0, graphql_1.printSchema)(schema));
 function metricResolver(args, _context, { fieldName, fieldNodes }) {
     var _a;
     const NON_DIMENSION_FIELDS = [fieldName, 'period'];

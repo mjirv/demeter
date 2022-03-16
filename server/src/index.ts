@@ -8,11 +8,11 @@ import dotenv from 'dotenv';
 import {Kable} from 'kable-node-express';
 import {graphqlHTTP} from 'express-graphql';
 import {
-  buildSchema,
+  printSchema,
   FieldNode,
-  GraphQLFieldResolver,
   GraphQLFloat,
   GraphQLList,
+  GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLString,
@@ -118,7 +118,7 @@ interface QueryParams {
   format?: 'csv' | 'json';
 }
 
-const queryMetric = (params: QueryParams) => {
+const queryMetric = (params: QueryParams): string => {
   console.debug(`called queryMetric with params ${JSON.stringify(params)}`);
   const {
     metric_name,
@@ -248,7 +248,7 @@ const QueryType = new GraphQLObjectType({
         {
           type: new GraphQLList(metricToGraphQLType(metric)),
           args: {
-            grain: {type: GraphQLString},
+            grain: {type: new GraphQLNonNull(GraphQLString)},
             start_date: {type: GraphQLString},
             end_date: {type: GraphQLString},
           },
@@ -262,6 +262,8 @@ const schema = new GraphQLSchema({
   query: QueryType,
 });
 
+console.info(printSchema(schema));
+
 interface MetricArgs {
   grain: Grain;
   start_date?: string;
@@ -270,7 +272,7 @@ interface MetricArgs {
 
 function metricResolver(
   args: MetricArgs,
-  _context: any,
+  _context: never,
   {fieldName, fieldNodes}: {fieldName: string; fieldNodes: FieldNode[]}
 ) {
   const NON_DIMENSION_FIELDS = [fieldName, 'period'];
