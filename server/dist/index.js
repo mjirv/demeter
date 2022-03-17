@@ -9,11 +9,11 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
-const child_process_1 = require("child_process");
 const dotenv_1 = __importDefault(require("dotenv"));
 const kable_node_express_1 = require("kable-node-express");
 const express_graphql_1 = require("express-graphql");
 const graphql_1 = require("graphql");
+const dbtService_1 = require("./services/dbtService");
 dotenv_1.default.config({ path: `.env.${process.env.NODE_ENV || 'local'}` });
 // defining the Express app
 const app = (0, express_1.default)();
@@ -40,53 +40,12 @@ const kable = process.env.KABLE_CLIENT_ID &&
         recordAuthentication: true,
     });
 kable && app.use(kable.authenticate);
-const listMetrics = (name, selectors = {}) => {
-    console.debug(`called listMetrics with params ${JSON.stringify({ name, selectors })}`);
-    const { type, model, package_name } = selectors;
-    // TODO: added some basic replacement to prevent bash injection, but I should clean this up here and elsewhere
-    const select = name ? `--select "metric:${name.replace(/"/g, '')}"` : '';
-    let metrics = JSON.parse('[' +
-        (0, child_process_1.execSync)(`cd ${process.env.DBT_PROJECT_PATH} &&\
-        dbt ls --resource-type metric --output json \
-        --output-keys "name model label description type time_grains dimensions filters unique_id package_name" \
-        ${select}`, { encoding: 'utf-8' })
-            .trimEnd()
-            .replace(/\n/g, ',') +
-        ']');
-    if (type) {
-        metrics = metrics.filter(metric => metric.type === type);
-    }
-    if (model) {
-        metrics = metrics.filter(metric => metric.model === model);
-    }
-    if (package_name) {
-        metrics = metrics.filter(metric => metric.package_name === package_name);
-    }
-    return metrics;
-};
-const queryMetric = (params) => {
-    console.debug(`called queryMetric with params ${JSON.stringify(params)}`);
-    const { metric_name, grain, dimensions, start_date, end_date, format = 'json', } = params;
-    const raw_output = (0, child_process_1.execSync)(`cd ${process.env.DBT_PROJECT_PATH} &&\
-          dbt run-operation --target ${process.env.DBT_TARGET} dbt_metrics_api.run_metric --args '${JSON.stringify({
-        metric_name,
-        grain,
-        dimensions,
-        start_date,
-        end_date,
-        format,
-    })}'
-      `, { encoding: 'utf-8' });
-    console.debug(raw_output);
-    const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
-    return raw_output.slice(raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length);
-};
 /* Lists all available metrics */
 app.get('/metrics', (req, res) => {
     res.type('application/json');
     const { name, type, model, package_name } = req.query;
     try {
-        const output = JSON.stringify(listMetrics(name, { type, model, package_name }));
+        const output = JSON.stringify((0, dbtService_1.listMetrics)(name, { type, model, package_name }));
         res.send(output);
     }
     catch (error) {
@@ -98,7 +57,7 @@ app.get('/metrics', (req, res) => {
 app.get('/metrics/:name', (req, res) => {
     const { name } = req.params;
     try {
-        const [metric] = listMetrics(name);
+        const [metric] = (0, dbtService_1.listMetrics)(name);
         const output = JSON.stringify(metric);
         res.send(output);
     }
@@ -132,7 +91,7 @@ app.post('/metrics/:metric_name', (req, res) => {
             .send({ error: 'grain is a required property; no grain given' });
     }
     try {
-        const output = queryMetric({
+        const output = (0, dbtService_1.queryMetric)({
             metric_name,
             grain,
             dimensions,
@@ -158,7 +117,7 @@ const metricToGraphQLType = (metric) => new graphql_1.GraphQLObjectType({
         ),
     },
 });
-const availableMetrics = listMetrics();
+const availableMetrics = (0, dbtService_1.listMetrics)();
 const QueryType = new graphql_1.GraphQLObjectType({
     name: 'Query',
     fields: {
@@ -184,7 +143,7 @@ function metricResolver(args, _context, { fieldName, fieldNodes }) {
     var _a;
     const NON_DIMENSION_FIELDS = [fieldName, 'period'];
     const [node] = fieldNodes;
-    return JSON.parse(queryMetric({
+    return JSON.parse((0, dbtService_1.queryMetric)({
         metric_name: fieldName,
         dimensions: (_a = node.selectionSet) === null || _a === void 0 ? void 0 : _a.selections.map(selection => selection.name.value).filter(field => !NON_DIMENSION_FIELDS.includes(field)),
         ...args,
