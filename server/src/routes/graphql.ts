@@ -93,7 +93,7 @@ const root = Object.fromEntries(metrics);
 console.debug(`available: ${JSON.stringify(metrics)}`);
 
 router.use(
-  '/graphql',
+  '/',
   graphqlHTTP({
     schema: schema,
     rootValue: root,

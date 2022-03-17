@@ -55,7 +55,7 @@ const metrics = availableMetrics.map(metric => [metric.name, metricResolver]);
 // eslint-disable-next-line node/no-unsupported-features/es-builtins
 const root = Object.fromEntries(metrics);
 console.debug(`available: ${JSON.stringify(metrics)}`);
-router.use('/graphql', (0, express_graphql_1.graphqlHTTP)({
+router.use('/', (0, express_graphql_1.graphqlHTTP)({
     schema: schema,
     rootValue: root,
     graphiql: true,
