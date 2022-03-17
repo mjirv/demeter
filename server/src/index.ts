@@ -21,7 +21,7 @@ import {
   Grain,
   listMetrics,
   queryMetric,
-} from './services/dbtService';
+} from './services/metricService';
 
 dotenv.config({path: `.env.${process.env.NODE_ENV || 'local'}`});
 

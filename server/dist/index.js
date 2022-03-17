@@ -13,7 +13,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const kable_node_express_1 = require("kable-node-express");
 const express_graphql_1 = require("express-graphql");
 const graphql_1 = require("graphql");
-const dbtService_1 = require("./services/dbtService");
+const metricService_1 = require("./services/metricService");
 dotenv_1.default.config({ path: `.env.${process.env.NODE_ENV || 'local'}` });
 // defining the Express app
 const app = (0, express_1.default)();
@@ -45,7 +45,7 @@ app.get('/metrics', (req, res) => {
     res.type('application/json');
     const { name, type, model, package_name } = req.query;
     try {
-        const output = JSON.stringify((0, dbtService_1.listMetrics)(name, { type, model, package_name }));
+        const output = JSON.stringify((0, metricService_1.listMetrics)(name, { type, model, package_name }));
         res.send(output);
     }
     catch (error) {
@@ -57,7 +57,7 @@ app.get('/metrics', (req, res) => {
 app.get('/metrics/:name', (req, res) => {
     const { name } = req.params;
     try {
-        const [metric] = (0, dbtService_1.listMetrics)(name);
+        const [metric] = (0, metricService_1.listMetrics)(name);
         const output = JSON.stringify(metric);
         res.send(output);
     }
@@ -91,7 +91,7 @@ app.post('/metrics/:metric_name', (req, res) => {
             .send({ error: 'grain is a required property; no grain given' });
     }
     try {
-        const output = (0, dbtService_1.queryMetric)({
+        const output = (0, metricService_1.queryMetric)({
             metric_name,
             grain,
             dimensions,
@@ -117,7 +117,7 @@ const metricToGraphQLType = (metric) => new graphql_1.GraphQLObjectType({
         ),
     },
 });
-const availableMetrics = (0, dbtService_1.listMetrics)();
+const availableMetrics = (0, metricService_1.listMetrics)();
 const QueryType = new graphql_1.GraphQLObjectType({
     name: 'Query',
     fields: {
@@ -143,7 +143,7 @@ function metricResolver(args, _context, { fieldName, fieldNodes }) {
     var _a;
     const NON_DIMENSION_FIELDS = [fieldName, 'period'];
     const [node] = fieldNodes;
-    return JSON.parse((0, dbtService_1.queryMetric)({
+    return JSON.parse((0, metricService_1.queryMetric)({
         metric_name: fieldName,
         dimensions: (_a = node.selectionSet) === null || _a === void 0 ? void 0 : _a.selections.map(selection => selection.name.value).filter(field => !NON_DIMENSION_FIELDS.includes(field)),
         ...args,
