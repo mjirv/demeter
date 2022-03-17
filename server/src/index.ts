@@ -10,7 +10,6 @@ import {Kable} from 'kable-node-express';
 import graphql from './routes/graphql';
 import metrics from './routes/metrics';
 
-
 // defining the Express app
 const app = express();
 
