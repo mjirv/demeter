@@ -4,16 +4,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config({ path: `.env.${process.env.NODE_ENV || 'local'}` });
 const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
-const dotenv_1 = __importDefault(require("dotenv"));
 const kable_node_express_1 = require("kable-node-express");
 const graphql_1 = __importDefault(require("./routes/graphql"));
 const metrics_1 = __importDefault(require("./routes/metrics"));
-dotenv_1.default.config({ path: `.env.${process.env.NODE_ENV || 'local'}` });
 // defining the Express app
 const app = (0, express_1.default)();
 // adding Helmet to enhance your API's security

@@ -18,6 +18,7 @@ interface Selectors {
   model?: string;
   package_name?: string;
 }
+
 export const listMetrics = (name?: string, selectors: Selectors = {}) => {
   console.debug(
     `called listMetrics with params ${JSON.stringify({name, selectors})}`

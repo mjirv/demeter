@@ -1,14 +1,15 @@
+import dotenv from 'dotenv';
+dotenv.config({path: `.env.${process.env.NODE_ENV || 'local'}`});
+
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import {Kable} from 'kable-node-express';
 import graphql from './routes/graphql';
 import metrics from './routes/metrics';
 
-dotenv.config({path: `.env.${process.env.NODE_ENV || 'local'}`});
 
 // defining the Express app
 const app = express();
