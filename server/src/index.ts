@@ -6,7 +6,6 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import github from 'octonode';
 import {Kable} from 'kable-node-express';
 import graphql from './routes/graphql';
 import metrics from './routes/metrics';

@@ -37,7 +37,6 @@
     "graphql": "^15.8.0",
     "helmet": "^5.0.2",
     "kable-node-express": "^2.3.13",
-    "morgan": "^1.10.0",
-    "octonode": "^0.10.2"
+    "morgan": "^1.10.0"
   }
 }
