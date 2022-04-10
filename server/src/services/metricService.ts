@@ -34,7 +34,7 @@ export const listMetrics = (name?: string, selectors: Selectors = {}) => {
           dbt ls --resource-type metric --output json \
           --output-keys "name model label description type time_grains dimensions filters unique_id package_name" \
           ${select}`,
-        {encoding: 'utf-8'}
+        {encoding: 'utf-8', shell: '/bin/bash'}
       )
         .trimEnd()
         .replace(/\n/g, ',') +

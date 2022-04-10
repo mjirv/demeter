@@ -11,7 +11,7 @@ const listMetrics = (name, selectors = {}) => {
         (0, child_process_1.execSync)(`cd ${process.env.DBT_PROJECT_PATH} &&\
           dbt ls --resource-type metric --output json \
           --output-keys "name model label description type time_grains dimensions filters unique_id package_name" \
-          ${select}`, { encoding: 'utf-8' })
+          ${select}`, { encoding: 'utf-8', shell: '/bin/bash' })
             .trimEnd()
             .replace(/\n/g, ',') +
         ']');

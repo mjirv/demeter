@@ -11,6 +11,7 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
+const octonode_1 = __importDefault(require("octonode"));
 const kable_node_express_1 = require("kable-node-express");
 const graphql_1 = __importDefault(require("./routes/graphql"));
 const metrics_1 = __importDefault(require("./routes/metrics"));
@@ -39,6 +40,13 @@ const kable = process.env.KABLE_CLIENT_ID &&
         recordAuthentication: true,
     });
 kable && app.use(kable.authenticate);
+// Copy and initialize the dbt repo from Github if needed
+if (process.env.GITHUB_HTTPS_URL) {
+    const client = octonode_1.default.client(process.env.GITHUB_ACCESS_TOKEN);
+    client.repo(`/${process.env.GITHUB_USERNAME}/dbt-demo-project`, {}, (_err, _status, body, _headers) => {
+        console.log(body); //json object
+    });
+}
 app.use('/metrics', metrics_1.default);
 app.use('/graphql', graphql_1.default);
 // starting the server

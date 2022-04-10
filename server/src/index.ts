@@ -6,6 +6,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import github from 'octonode';
 import {Kable} from 'kable-node-express';
 import graphql from './routes/graphql';
 import metrics from './routes/metrics';
@@ -46,6 +47,19 @@ const kable =
   });
 
 kable && app.use(kable.authenticate);
+
+// Copy and initialize the dbt repo from Github if needed
+if (process.env.GITHUB_HTTPS_URL) {
+  const client = github.client(process.env.GITHUB_ACCESS_TOKEN);
+
+  client.repo(
+    `/${process.env.GITHUB_USERNAME}/dbt-demo-project`,
+    {},
+    (_err: unknown, _status: unknown, body: unknown, _headers: unknown) => {
+      console.log(body); //json object
+    }
+  );
+}
 
 app.use('/metrics', metrics);
 app.use('/graphql', graphql);
