@@ -2,13 +2,16 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.queryMetric = exports.listMetrics = void 0;
 const child_process_1 = require("child_process");
+const DBT_PROJECT_PATH = process.env.GITHUB_REPOSITORY
+    ? '~/github/'
+    : process.env.DBT_PROJECT_PATH;
 const listMetrics = (name, selectors = {}) => {
     console.debug(`called listMetrics with params ${JSON.stringify({ name, selectors })}`);
     const { type, model, package_name } = selectors;
     // TODO: added some basic replacement to prevent bash injection, but I should clean this up here and elsewhere
     const select = name ? `--select "metric:${name.replace(/"/g, '')}"` : '';
     let metrics = JSON.parse('[' +
-        (0, child_process_1.execSync)(`cd ${process.env.DBT_PROJECT_PATH} &&\
+        (0, child_process_1.execSync)(`cd ${DBT_PROJECT_PATH} &&\
           dbt ls --resource-type metric --output json \
           --output-keys "name model label description type time_grains dimensions filters unique_id package_name" \
           ${select}`, { encoding: 'utf-8', shell: '/bin/bash' })
@@ -30,7 +33,7 @@ exports.listMetrics = listMetrics;
 const queryMetric = (params) => {
     console.debug(`called queryMetric with params ${JSON.stringify(params)}`);
     const { metric_name, grain, dimensions, start_date, end_date, format = 'json', } = params;
-    const raw_output = (0, child_process_1.execSync)(`cd ${process.env.DBT_PROJECT_PATH} &&\
+    const raw_output = (0, child_process_1.execSync)(`cd ${DBT_PROJECT_PATH} &&\
           dbt run-operation --target ${process.env.DBT_TARGET} dbt_metrics_api.run_metric --args '${JSON.stringify({
         metric_name,
         grain,

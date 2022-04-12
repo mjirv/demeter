@@ -7,7 +7,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import {Kable} from 'kable-node-express';
-import graphql from './routes/graphql';
+import simpleGit from 'simple-git';
+
+import graphql, {graphqlInit} from './routes/graphql';
 import metrics from './routes/metrics';
 
 // defining the Express app
@@ -47,19 +49,23 @@ const kable =
 
 kable && app.use(kable.authenticate);
 
-// Copy and initialize the dbt repo from Github if needed
-if (process.env.GITHUB_HTTPS_URL) {
-  const client = github.client(process.env.GITHUB_ACCESS_TOKEN);
+console.info(`repo: ${process.env.GITHUB_REPOSITORY}`);
 
-  client.repo(
-    `/${process.env.GITHUB_USERNAME}/dbt-demo-project`,
-    {},
-    (_err: unknown, _status: unknown, body: unknown, _headers: unknown) => {
-      console.log(body); //json object
-    }
-  );
+// Copy and initialize the dbt repo from Github if needed
+if (process.env.GITHUB_REPOSITORY) {
+  const githubUrl = `https://${process.env.GITHUB_ACCESS_TOKEN}@github.com/${process.env.GITHUB_REPOSITORY}.git`;
+  const GITHUB_DIR = '/home/michael/github/';
+  console.info('made it');
+  console.info(githubUrl);
+  try {
+    simpleGit().env('GIT_TERMINAL_PROMPT', '1').clone(githubUrl, GITHUB_DIR);
+  } catch (error) {
+    console.error('found an error!');
+    console.error(error);
+  }
 }
 
+graphqlInit();
 app.use('/metrics', metrics);
 app.use('/graphql', graphql);
 

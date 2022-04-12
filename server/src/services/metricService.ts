@@ -19,6 +19,10 @@ interface Selectors {
   package_name?: string;
 }
 
+const DBT_PROJECT_PATH = process.env.GITHUB_REPOSITORY
+  ? '~/github/'
+  : process.env.DBT_PROJECT_PATH;
+
 export const listMetrics = (name?: string, selectors: Selectors = {}) => {
   console.debug(
     `called listMetrics with params ${JSON.stringify({name, selectors})}`
@@ -30,7 +34,7 @@ export const listMetrics = (name?: string, selectors: Selectors = {}) => {
   let metrics = JSON.parse(
     '[' +
       execSync(
-        `cd ${process.env.DBT_PROJECT_PATH} &&\
+        `cd ${DBT_PROJECT_PATH} &&\
           dbt ls --resource-type metric --output json \
           --output-keys "name model label description type time_grains dimensions filters unique_id package_name" \
           ${select}`,
@@ -74,7 +78,7 @@ export const queryMetric = (params: QueryParams): string => {
   } = params;
 
   const raw_output = execSync(
-    `cd ${process.env.DBT_PROJECT_PATH} &&\
+    `cd ${DBT_PROJECT_PATH} &&\
           dbt run-operation --target ${
             process.env.DBT_TARGET
           } dbt_metrics_api.run_metric --args '${JSON.stringify({
