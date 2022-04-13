@@ -1,78 +1,59 @@
-"use strict";
 /* GraphQL methods */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.graphqlInit = void 0;
-const express_graphql_1 = require("express-graphql");
-const graphql_1 = require("graphql");
-const metricService_1 = require("../services/metricService");
-const express_1 = __importDefault(require("express"));
-const router = express_1.default.Router();
-const graphqlInit = () => {
-    const metricToGraphQLType = (metric) => new graphql_1.GraphQLObjectType({
+import { graphqlHTTP } from 'express-graphql';
+import { GraphQLFloat, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLSchema, GraphQLString, printSchema, } from 'graphql';
+import { listMetrics, queryMetric, } from '../services/metricService.js';
+import express from 'express';
+const router = express.Router();
+export const graphqlInit = () => {
+    const metricToGraphQLType = (metric) => new GraphQLObjectType({
         name: metric.name,
-        fields: {
-            period: { type: graphql_1.GraphQLString },
-            [metric.name]: { type: graphql_1.GraphQLFloat },
-            // eslint-disable-next-line node/no-unsupported-features/es-builtins
-            ...Object.fromEntries(metric.dimensions.map(dimension => [dimension, { type: graphql_1.GraphQLString }]) // TODO: they might be other things
-            ),
-        },
+        fields: Object.assign({ period: { type: GraphQLString }, [metric.name]: { type: GraphQLFloat } }, Object.fromEntries(metric.dimensions.map(dimension => [dimension, { type: GraphQLString }]) // TODO: they might be other things
+        )),
     });
     let availableMetrics = [];
     try {
-        availableMetrics = (0, metricService_1.listMetrics)();
+        availableMetrics = listMetrics();
     }
     catch (error) {
         console.warn(error);
     }
-    const QueryType = new graphql_1.GraphQLObjectType({
+    const QueryType = new GraphQLObjectType({
         name: 'Query',
-        fields: {
-            // eslint-disable-next-line node/no-unsupported-features/es-builtins
-            ...Object.fromEntries(availableMetrics.map(metric => [
-                metric.name,
-                {
-                    type: new graphql_1.GraphQLList(metricToGraphQLType(metric)),
-                    args: {
-                        grain: { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) },
-                        start_date: { type: graphql_1.GraphQLString },
-                        end_date: { type: graphql_1.GraphQLString },
-                    },
+        fields: Object.assign({}, Object.fromEntries(availableMetrics.map(metric => [
+            metric.name,
+            {
+                type: new GraphQLList(metricToGraphQLType(metric)),
+                args: {
+                    grain: { type: new GraphQLNonNull(GraphQLString) },
+                    start_date: { type: GraphQLString },
+                    end_date: { type: GraphQLString },
                 },
-            ])),
-        },
+            },
+        ]))),
     });
-    const schema = new graphql_1.GraphQLSchema({
+    const schema = new GraphQLSchema({
         query: QueryType,
     });
-    console.info((0, graphql_1.printSchema)(schema));
+    console.info(printSchema(schema));
     function metricResolver(args, _context, { fieldName, fieldNodes }) {
         var _a;
         const NON_DIMENSION_FIELDS = [fieldName, 'period'];
         const [node] = fieldNodes;
-        return JSON.parse((0, metricService_1.queryMetric)({
-            metric_name: fieldName,
-            dimensions: (_a = node.selectionSet) === null || _a === void 0 ? void 0 : _a.selections.map(selection => selection.name.value).filter(field => !NON_DIMENSION_FIELDS.includes(field)),
-            ...args,
-        }));
+        return JSON.parse(queryMetric(Object.assign({ metric_name: fieldName, dimensions: (_a = node.selectionSet) === null || _a === void 0 ? void 0 : _a.selections.map(selection => selection.name.value).filter(field => !NON_DIMENSION_FIELDS.includes(field)) }, args)));
     }
     const metrics = availableMetrics.map(metric => [metric.name, metricResolver]);
     // eslint-disable-next-line node/no-unsupported-features/es-builtins
     const root = Object.fromEntries(metrics);
     console.debug(`available: ${JSON.stringify(metrics)}`);
-    router.use('/', (0, express_graphql_1.graphqlHTTP)({
+    router.use('/', graphqlHTTP({
         schema: schema,
         rootValue: root,
         graphiql: true,
     }));
 };
-exports.graphqlInit = graphqlInit;
 router.post('/refresh', (_req, res) => {
-    (0, exports.graphqlInit)();
+    graphqlInit();
     res.status(200).end();
 });
-exports.default = router;
+export default router;
 //# sourceMappingURL=graphql.js.map

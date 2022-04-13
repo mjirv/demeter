@@ -1,5 +1,5 @@
 import express from 'express';
-import {listMetrics, queryMetric} from '../services/metricService';
+import {listMetrics, queryMetric} from '../services/metricService.js';
 
 const router = express.Router();
 

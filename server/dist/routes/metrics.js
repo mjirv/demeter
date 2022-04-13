@@ -1,17 +1,12 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const metricService_1 = require("../services/metricService");
-const router = express_1.default.Router();
+import express from 'express';
+import { listMetrics, queryMetric } from '../services/metricService.js';
+const router = express.Router();
 /* Lists all available metrics */
 router.get('/', (req, res) => {
     res.type('application/json');
     const { name, type, model, package_name } = req.query;
     try {
-        const output = JSON.stringify((0, metricService_1.listMetrics)(name, { type, model, package_name }));
+        const output = JSON.stringify(listMetrics(name, { type, model, package_name }));
         res.send(output);
     }
     catch (error) {
@@ -23,7 +18,7 @@ router.get('/', (req, res) => {
 router.get('/:name', (req, res) => {
     const { name } = req.params;
     try {
-        const [metric] = (0, metricService_1.listMetrics)(name);
+        const [metric] = listMetrics(name);
         const output = JSON.stringify(metric);
         res.send(output);
     }
@@ -57,7 +52,7 @@ router.post('/:metric_name', (req, res) => {
             .send({ error: 'grain is a required property; no grain given' });
     }
     try {
-        const output = (0, metricService_1.queryMetric)({
+        const output = queryMetric({
             metric_name,
             grain,
             dimensions,
@@ -72,5 +67,5 @@ router.post('/:metric_name', (req, res) => {
         res.status(404).send(error);
     }
 });
-exports.default = router;
+export default router;
 //# sourceMappingURL=metrics.js.map

@@ -7,10 +7,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import {Kable} from 'kable-node-express';
-import simpleGit from 'simple-git';
-
-import graphql, {graphqlInit} from './routes/graphql';
-import metrics from './routes/metrics';
+import githubService from './services/gitService.js';
+import graphql, {graphqlInit} from './routes/graphql.js';
+import metrics from './routes/metrics.js';
 
 // defining the Express app
 const app = express();
@@ -53,16 +52,7 @@ console.info(`repo: ${process.env.GITHUB_REPOSITORY}`);
 
 // Copy and initialize the dbt repo from Github if needed
 if (process.env.GITHUB_REPOSITORY) {
-  const githubUrl = `https://${process.env.GITHUB_ACCESS_TOKEN}@github.com/${process.env.GITHUB_REPOSITORY}.git`;
-  const GITHUB_DIR = '/home/michael/github/';
-  console.info('made it');
-  console.info(githubUrl);
-  try {
-    simpleGit().env('GIT_TERMINAL_PROMPT', '1').clone(githubUrl, GITHUB_DIR);
-  } catch (error) {
-    console.error('found an error!');
-    console.error(error);
-  }
+  githubService.clone(process.env.GITHUB_REPOSITORY);
 }
 
 graphqlInit();

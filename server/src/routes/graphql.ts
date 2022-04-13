@@ -16,7 +16,7 @@ import {
   Grain,
   listMetrics,
   queryMetric,
-} from '../services/metricService';
+} from '../services/metricService.js';
 import express from 'express';
 
 const router = express.Router();

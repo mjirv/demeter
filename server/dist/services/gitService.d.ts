@@ -1,10 +1,10 @@
 interface IGitService {
-    dir: string;
+    dir: string | undefined;
     clone: (repository: string) => void;
 }
 export declare class GithubService implements IGitService {
     #private;
-    dir: string;
+    dir: string | undefined;
     constructor(accessToken?: string);
     clone(repository: string): void;
 }

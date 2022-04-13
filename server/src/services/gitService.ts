@@ -3,27 +3,32 @@ import simpleGit, {SimpleGit} from 'simple-git';
 import tempy from 'tempy';
 
 interface IGitService {
-  dir: string;
+  dir: string | undefined;
   clone: (repository: string) => void;
 }
 
 export class GithubService implements IGitService {
-  #accessToken: string;
+  #accessToken?: string;
   #client: SimpleGit;
-  dir: string;
+  dir: string | undefined;
 
   constructor(accessToken?: string) {
     if (!accessToken) {
-      throw new Error('no github access token provided');
+      console.debug(
+        'no access token provided. initializing blank GithubService instance'
+      );
     }
     this.#accessToken = accessToken;
     this.#client = simpleGit();
-    this.dir = tempy.directory({
-      prefix: 'git_',
-    });
+    this.dir = accessToken ? tempy.directory() : undefined;
   }
 
   clone(repository: string) {
+    if (!this.#accessToken || !this.dir) {
+      throw Error(
+        'Cannot clone, no access token was provided in the environment'
+      );
+    }
     const url = `https://${this.#accessToken}@github.com/${repository}.git`;
     this.#client.env('GIT_TERMINAL_PROMPT', '0').clone(url, this.dir);
   }

@@ -1,4 +1,5 @@
 import {execSync} from 'child_process';
+import gitService from './gitService.js';
 
 export interface DBTResource {
   name: string;
@@ -19,9 +20,8 @@ interface Selectors {
   package_name?: string;
 }
 
-const DBT_PROJECT_PATH = process.env.GITHUB_REPOSITORY
-  ? '~/github/'
-  : process.env.DBT_PROJECT_PATH;
+const DBT_PROJECT_PATH = gitService.dir || process.env.DBT_PROJECT_PATH;
+console.info(DBT_PROJECT_PATH);
 
 export const listMetrics = (name?: string, selectors: Selectors = {}) => {
   console.debug(
