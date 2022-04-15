@@ -101,7 +101,7 @@ export function graphqlInit() {
     return { ...prev, [current.name]: metricResolver}
   }, {});
 
-  Object.keys(root).length > 0 && router.use(
+  router.use(
     '/',
     Object.keys(root).length > 0 ? graphqlHTTP({
       schema: schema,
@@ -109,7 +109,7 @@ export function graphqlInit() {
       graphiql: true,
     }) : function(req, res, next) {
       graphqlInit();
-      res.redirect('/');
+      next();
     }
   );
 };
