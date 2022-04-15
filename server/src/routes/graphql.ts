@@ -21,7 +21,7 @@ import express from 'express';
 
 const router = express.Router();
 
-export const graphqlInit = () => {
+export function graphqlInit() {
   const metricToGraphQLType = (metric: DBTResource) =>
     new GraphQLObjectType({
       name: metric.name,
@@ -46,7 +46,6 @@ export const graphqlInit = () => {
   const QueryType = new GraphQLObjectType({
     name: 'Query',
     fields: {
-      // eslint-disable-next-line node/no-unsupported-features/es-builtins
       ...Object.fromEntries(
         availableMetrics.map(metric => [
           metric.name,
@@ -93,13 +92,13 @@ export const graphqlInit = () => {
     );
   }
 
-  const metrics = availableMetrics.map(metric => [metric.name, metricResolver]);
-  // eslint-disable-next-line node/no-unsupported-features/es-builtins
-  const root = Object.fromEntries(metrics);
+  let root = availableMetrics.reduce((prev, current) => {
+    console.info(`current: ${JSON.stringify(current)}`);
+    console.info(`prev: ${JSON.stringify(prev)}`);
+    return { ...prev, [current.name]: metricResolver}
+  }, {});
 
-  console.debug(`available: ${JSON.stringify(metrics)}`);
-
-  router.use(
+  Object.keys(root).length > 0 && router.use(
     '/',
     graphqlHTTP({
       schema: schema,

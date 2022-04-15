@@ -4,7 +4,7 @@ import { GraphQLFloat, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLSc
 import { listMetrics, queryMetric, } from '../services/metricService.js';
 import express from 'express';
 const router = express.Router();
-export const graphqlInit = () => {
+export function graphqlInit() {
     const metricToGraphQLType = (metric) => new GraphQLObjectType({
         name: metric.name,
         fields: Object.assign({ period: { type: GraphQLString }, [metric.name]: { type: GraphQLFloat } }, Object.fromEntries(metric.dimensions.map(dimension => [dimension, { type: GraphQLString }]) // TODO: they might be other things
@@ -41,16 +41,18 @@ export const graphqlInit = () => {
         const [node] = fieldNodes;
         return JSON.parse(queryMetric(Object.assign({ metric_name: fieldName, dimensions: (_a = node.selectionSet) === null || _a === void 0 ? void 0 : _a.selections.map(selection => selection.name.value).filter(field => !NON_DIMENSION_FIELDS.includes(field)) }, args)));
     }
-    const metrics = availableMetrics.map(metric => [metric.name, metricResolver]);
-    // eslint-disable-next-line node/no-unsupported-features/es-builtins
-    const root = Object.fromEntries(metrics);
-    console.debug(`available: ${JSON.stringify(metrics)}`);
-    router.use('/', graphqlHTTP({
+    let root = availableMetrics.reduce((prev, current) => {
+        console.info(`current: ${JSON.stringify(current)}`);
+        console.info(`prev: ${JSON.stringify(prev)}`);
+        return Object.assign(Object.assign({}, prev), { [current.name]: metricResolver });
+    }, {});
+    Object.keys(root).length > 0 && router.use('/', graphqlHTTP({
         schema: schema,
         rootValue: root,
         graphiql: true,
     }));
-};
+}
+;
 router.post('/refresh', (_req, res) => {
     graphqlInit();
     res.status(200).end();

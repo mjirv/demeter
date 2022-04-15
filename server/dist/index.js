@@ -1,6 +1,5 @@
 var _a;
-import dotenv from 'dotenv';
-dotenv.config({ path: `.env.${process.env.NODE_ENV || 'local'}` });
+import 'dotenv/config';
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -35,6 +34,7 @@ const kable = process.env.KABLE_CLIENT_ID &&
         recordAuthentication: true,
     });
 kable && app.use(kable.authenticate);
+console.info(`token: ${process.env.GITHUB_ACCESS_TOKEN}`);
 console.info(`repo: ${process.env.GITHUB_REPOSITORY}`);
 // Copy and initialize the dbt repo from Github if needed
 if (process.env.GITHUB_REPOSITORY) {

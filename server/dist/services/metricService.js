@@ -1,20 +1,27 @@
-import { execSync } from 'child_process';
+import { execFileSync, execSync } from 'child_process';
 import gitService from './gitService.js';
 const DBT_PROJECT_PATH = gitService.dir || process.env.DBT_PROJECT_PATH;
 console.info(DBT_PROJECT_PATH);
 export const listMetrics = (name, selectors = {}) => {
+    var _a;
     console.debug(`called listMetrics with params ${JSON.stringify({ name, selectors })}`);
     const { type, model, package_name } = selectors;
-    // TODO: added some basic replacement to prevent bash injection, but I should clean this up here and elsewhere
     const select = name ? `--select "metric:${name.replace(/"/g, '')}"` : '';
-    let metrics = JSON.parse('[' +
-        execSync(`cd ${DBT_PROJECT_PATH} &&\
-          dbt ls --resource-type metric --output json \
-          --output-keys "name model label description type time_grains dimensions filters unique_id package_name" \
-          ${select}`, { encoding: 'utf-8', shell: '/bin/bash' })
-            .trimEnd()
-            .replace(/\n/g, ',') +
-        ']');
+    const res = '[' +
+        ((_a = (execFileSync('dbt', [
+            'ls',
+            '--resource-type',
+            'metric',
+            '--output',
+            'json',
+            '--output-keys',
+            '"name model label description type time_grains dimensions filters unique_id package_name"',
+            ...(select ? [select] : []),
+        ], { cwd: DBT_PROJECT_PATH }))
+            .toString().trimEnd().match(/\{.*\}/i)) === null || _a === void 0 ? void 0 : _a.toString().replace(/\n/g, ',')) +
+        ']';
+    console.info(res);
+    let metrics = JSON.parse(res);
     if (type) {
         metrics = metrics.filter(metric => metric.type === type);
     }
