@@ -20,7 +20,7 @@ export class GithubService implements IGitService {
     }
     this.#accessToken = accessToken;
     this.#client = simpleGit();
-    this.dir = accessToken ? tempy.directory() : undefined;
+    this.dir = accessToken ? tempy.directory({ prefix: "_github" }) : undefined;
   }
 
   clone(repository: string) {

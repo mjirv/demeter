@@ -17,9 +17,14 @@ import {
   listMetrics,
   queryMetric,
 } from '../services/metricService.js';
-import express from 'express';
+import express, { Request, Response } from 'express';
 
 const router = express.Router();
+
+const refreshSchema = (_req: Request, res: Response) => {
+  graphqlInit();
+  res.status(200).end();
+}
 
 export function graphqlInit() {
   const metricToGraphQLType = (metric: DBTResource) =>
@@ -93,24 +98,22 @@ export function graphqlInit() {
   }
 
   let root = availableMetrics.reduce((prev, current) => {
-    console.info(`current: ${JSON.stringify(current)}`);
-    console.info(`prev: ${JSON.stringify(prev)}`);
     return { ...prev, [current.name]: metricResolver}
   }, {});
 
   Object.keys(root).length > 0 && router.use(
     '/',
-    graphqlHTTP({
+    Object.keys(root).length > 0 ? graphqlHTTP({
       schema: schema,
       rootValue: root,
       graphiql: true,
-    })
+    }) : function(req, res, next) {
+      graphqlInit();
+      res.redirect('/');
+    }
   );
 };
 
-router.post('/refresh', (_req, res) => {
-  graphqlInit();
-  res.status(200).end();
-});
+router.post('/refresh', refreshSchema);
 
 export default router;

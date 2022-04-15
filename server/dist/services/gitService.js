@@ -22,7 +22,7 @@ export class GithubService {
         }
         __classPrivateFieldSet(this, _GithubService_accessToken, accessToken, "f");
         __classPrivateFieldSet(this, _GithubService_client, simpleGit(), "f");
-        this.dir = accessToken ? tempy.directory() : undefined;
+        this.dir = accessToken ? tempy.directory({ prefix: "_github" }) : undefined;
     }
     clone(repository) {
         if (!__classPrivateFieldGet(this, _GithubService_accessToken, "f") || !this.dir) {
