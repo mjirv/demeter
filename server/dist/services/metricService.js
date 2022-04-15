@@ -8,7 +8,7 @@ export const listMetrics = (name, selectors = {}) => {
     const { type, model, package_name } = selectors;
     const select = name ? `--select "metric:${name.replace(/"/g, '')}"` : '';
     const res = '[' +
-        ((_a = (execFileSync('dbt', [
+        ((_a = execFileSync('dbt', [
             'ls',
             '--resource-type',
             'metric',
@@ -17,8 +17,10 @@ export const listMetrics = (name, selectors = {}) => {
             '--output-keys',
             '"name model label description type time_grains dimensions filters unique_id package_name"',
             ...(select ? [select] : []),
-        ], { cwd: DBT_PROJECT_PATH }))
-            .toString().trimEnd().match(/\{.*\}/i)) === null || _a === void 0 ? void 0 : _a.toString().replace(/\n/g, ',')) +
+        ], { cwd: DBT_PROJECT_PATH })
+            .toString()
+            .trimEnd()
+            .match(/\{.*\}/i)) === null || _a === void 0 ? void 0 : _a.toString().replace(/\n/g, ',')) +
         ']';
     console.info(res);
     let metrics = JSON.parse(res);

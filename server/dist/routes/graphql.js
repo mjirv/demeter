@@ -8,6 +8,14 @@ const refreshSchema = (_req, res) => {
     graphqlInit();
     res.status(200).end();
 };
+let graphqlMiddleware = (req, res, next) => {
+    var _a;
+    if ((_a = graphqlInit()) === null || _a === void 0 ? void 0 : _a.success) {
+        res.redirect('/graphql');
+        return;
+    }
+    next();
+};
 export function graphqlInit() {
     const metricToGraphQLType = (metric) => new GraphQLObjectType({
         name: metric.name,
@@ -45,19 +53,20 @@ export function graphqlInit() {
         const [node] = fieldNodes;
         return JSON.parse(queryMetric(Object.assign({ metric_name: fieldName, dimensions: (_a = node.selectionSet) === null || _a === void 0 ? void 0 : _a.selections.map(selection => selection.name.value).filter(field => !NON_DIMENSION_FIELDS.includes(field)) }, args)));
     }
-    let root = availableMetrics.reduce((prev, current) => {
+    const root = availableMetrics.reduce((prev, current) => {
         return Object.assign(Object.assign({}, prev), { [current.name]: metricResolver });
     }, {});
-    router.use('/', Object.keys(root).length > 0 ? graphqlHTTP({
-        schema: schema,
-        rootValue: root,
-        graphiql: true,
-    }) : function (req, res, next) {
-        graphqlInit();
-        next();
-    });
+    if (Object.keys(root).length > 0) {
+        graphqlMiddleware = graphqlHTTP({
+            schema: schema,
+            rootValue: root,
+            graphiql: true,
+        });
+        return { success: true };
+    }
+    return { success: false };
 }
-;
+router.use('/', (req, res, next) => graphqlMiddleware(req, res, next));
 router.post('/refresh', refreshSchema);
 export default router;
 //# sourceMappingURL=graphql.js.map

@@ -30,25 +30,27 @@ export const listMetrics = (name?: string, selectors: Selectors = {}) => {
   const {type, model, package_name} = selectors;
 
   const select = name ? `--select "metric:${name.replace(/"/g, '')}"` : '';
-  const res = 
-  '[' +
-    (
-      execFileSync(
-        'dbt',
-        [
-          'ls',
-          '--resource-type',
-          'metric',
-          '--output',
-          'json',
-          '--output-keys',
-          '"name model label description type time_grains dimensions filters unique_id package_name"',
-          ...(select ? [select] : []),
-        ],
-        {cwd: DBT_PROJECT_PATH}
-      )
+  const res =
+    '[' +
+    execFileSync(
+      'dbt',
+      [
+        'ls',
+        '--resource-type',
+        'metric',
+        '--output',
+        'json',
+        '--output-keys',
+        '"name model label description type time_grains dimensions filters unique_id package_name"',
+        ...(select ? [select] : []),
+      ],
+      {cwd: DBT_PROJECT_PATH}
     )
-      .toString().trimEnd().match(/\{.*\}/i)?.toString().replace(/\n/g, ',') +
+      .toString()
+      .trimEnd()
+      .match(/\{.*\}/i)
+      ?.toString()
+      .replace(/\n/g, ',') +
     ']';
   console.info(res);
   let metrics = JSON.parse(res) as DBTResource[];

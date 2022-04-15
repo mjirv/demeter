@@ -17,14 +17,22 @@ import {
   listMetrics,
   queryMetric,
 } from '../services/metricService.js';
-import express, { Request, Response } from 'express';
+import express, {NextFunction, Request, Response} from 'express';
 
 const router = express.Router();
 
 const refreshSchema = (_req: Request, res: Response) => {
   graphqlInit();
   res.status(200).end();
-}
+};
+
+let graphqlMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  if (graphqlInit()?.success) {
+    res.redirect('/graphql');
+    return;
+  }
+  next();
+};
 
 export function graphqlInit() {
   const metricToGraphQLType = (metric: DBTResource) =>
@@ -97,23 +105,22 @@ export function graphqlInit() {
     );
   }
 
-  let root = availableMetrics.reduce((prev, current) => {
-    return { ...prev, [current.name]: metricResolver}
+  const root = availableMetrics.reduce((prev, current) => {
+    return {...prev, [current.name]: metricResolver};
   }, {});
 
-  router.use(
-    '/',
-    Object.keys(root).length > 0 ? graphqlHTTP({
+  if (Object.keys(root).length > 0) {
+    graphqlMiddleware = graphqlHTTP({
       schema: schema,
       rootValue: root,
       graphiql: true,
-    }) : function(req, res, next) {
-      graphqlInit();
-      next();
-    }
-  );
-};
+    });
+    return {success: true};
+  }
+  return {success: false};
+}
 
+router.use('/', (req, res, next) => graphqlMiddleware(req, res, next));
 router.post('/refresh', refreshSchema);
 
 export default router;
