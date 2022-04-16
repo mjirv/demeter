@@ -8,6 +8,7 @@ import {Kable} from 'kable-node-express';
 import githubService from './services/gitService.js';
 import graphql, {graphqlInit} from './routes/graphql.js';
 import metrics from './routes/metrics.js';
+import { installMetricsPackage } from './services/metricService.js';
 
 // defining the Express app
 const app = express();
@@ -51,9 +52,10 @@ console.info(`repo: ${process.env.GITHUB_REPOSITORY}`);
 
 // Copy and initialize the dbt repo from Github if needed
 if (process.env.GITHUB_REPOSITORY) {
-  githubService.clone(process.env.GITHUB_REPOSITORY);
+  await githubService.clone(process.env.GITHUB_REPOSITORY);
 }
 
+installMetricsPackage();
 graphqlInit();
 app.use('/metrics', metrics);
 app.use('/graphql', graphql);

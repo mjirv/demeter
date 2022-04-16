@@ -23,14 +23,14 @@ export class GithubService implements IGitService {
     this.dir = accessToken ? tempy.directory({prefix: '_github'}) : undefined;
   }
 
-  clone(repository: string) {
+  async clone(repository: string) {
     if (!this.#accessToken || !this.dir) {
       throw Error(
         'Cannot clone, no access token was provided in the environment'
       );
     }
     const url = `https://${this.#accessToken}@github.com/${repository}.git`;
-    this.#client.env('GIT_TERMINAL_PROMPT', '0').clone(url, this.dir);
+    await this.#client.env('GIT_TERMINAL_PROMPT', '0').clone(url, this.dir);
   }
 }
 

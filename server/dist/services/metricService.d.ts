@@ -15,6 +15,7 @@ interface Selectors {
     model?: string;
     package_name?: string;
 }
+export declare const installMetricsPackage: () => void;
 export declare const listMetrics: (name?: string | undefined, selectors?: Selectors) => DBTResource[];
 export declare type Grain = 'day' | 'week' | 'month' | 'quarter' | 'year';
 interface QueryParams {

@@ -24,12 +24,12 @@ export class GithubService {
         __classPrivateFieldSet(this, _GithubService_client, simpleGit(), "f");
         this.dir = accessToken ? tempy.directory({ prefix: '_github' }) : undefined;
     }
-    clone(repository) {
+    async clone(repository) {
         if (!__classPrivateFieldGet(this, _GithubService_accessToken, "f") || !this.dir) {
             throw Error('Cannot clone, no access token was provided in the environment');
         }
         const url = `https://${__classPrivateFieldGet(this, _GithubService_accessToken, "f")}@github.com/${repository}.git`;
-        __classPrivateFieldGet(this, _GithubService_client, "f").env('GIT_TERMINAL_PROMPT', '0').clone(url, this.dir);
+        await __classPrivateFieldGet(this, _GithubService_client, "f").env('GIT_TERMINAL_PROMPT', '0').clone(url, this.dir);
     }
 }
 _GithubService_accessToken = new WeakMap(), _GithubService_client = new WeakMap();
