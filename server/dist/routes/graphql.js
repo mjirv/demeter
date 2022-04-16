@@ -11,8 +11,7 @@ const refreshSchema = (_req, res) => {
 let graphqlMiddleware = (req, res, next) => {
     var _a;
     if ((_a = graphqlInit()) === null || _a === void 0 ? void 0 : _a.success) {
-        res.redirect('/graphql');
-        return;
+        graphqlMiddleware(req, res, next);
     }
     next();
 };

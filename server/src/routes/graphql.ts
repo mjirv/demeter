@@ -3,6 +3,7 @@
 import {graphqlHTTP} from 'express-graphql';
 import {
   FieldNode,
+  graphql,
   GraphQLFloat,
   GraphQLList,
   GraphQLNonNull,
@@ -28,8 +29,7 @@ const refreshSchema = (_req: Request, res: Response) => {
 
 let graphqlMiddleware = (req: Request, res: Response, next: NextFunction) => {
   if (graphqlInit()?.success) {
-    res.redirect('/graphql');
-    return;
+    graphqlMiddleware(req, res, next);
   }
   next();
 };
