@@ -8,7 +8,7 @@ import {Kable} from 'kable-node-express';
 import githubService from './services/gitService.js';
 import graphql, {graphqlInit} from './routes/graphql.js';
 import metrics from './routes/metrics.js';
-import { installMetricsPackage } from './services/metricService.js';
+import metricService from './services/MetricService/index.js';
 
 // defining the Express app
 const app = express();
@@ -55,7 +55,7 @@ if (process.env.GITHUB_REPOSITORY) {
   await githubService.clone(process.env.GITHUB_REPOSITORY);
 }
 
-installMetricsPackage();
+metricService.installMetricsPackage();
 graphqlInit();
 app.use('/metrics', metrics);
 app.use('/graphql', graphql);

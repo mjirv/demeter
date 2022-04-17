@@ -1,3 +1,7 @@
+export interface MetricService {
+    listMetrics: (name?: string, selectors?: Selectors) => DBTResource[];
+    queryMetric: (params: QueryParams) => Record<string, string | number>;
+}
 export interface DBTResource {
     name: string;
     label: string;

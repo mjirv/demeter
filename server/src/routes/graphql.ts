@@ -3,7 +3,6 @@
 import {graphqlHTTP} from 'express-graphql';
 import {
   FieldNode,
-  graphql,
   GraphQLFloat,
   GraphQLList,
   GraphQLNonNull,
@@ -12,12 +11,11 @@ import {
   GraphQLString,
   printSchema,
 } from 'graphql';
-import {
+import metricService from '../services/MetricService/index.js';
+import type {
   DBTResource,
   Grain,
-  listMetrics,
-  queryMetric,
-} from '../services/metricService.js';
+} from '../services/MetricService/MetricService.js';
 import express, {NextFunction, Request, Response} from 'express';
 
 const router = express.Router();
@@ -51,7 +49,7 @@ export function graphqlInit() {
   let availableMetrics: DBTResource[] = [];
 
   try {
-    availableMetrics = listMetrics();
+    availableMetrics = metricService.listMetrics();
   } catch (error) {
     console.warn(error);
   }
@@ -94,15 +92,13 @@ export function graphqlInit() {
   ) {
     const NON_DIMENSION_FIELDS = [fieldName, 'period'];
     const [node] = fieldNodes;
-    return JSON.parse(
-      queryMetric({
-        metric_name: fieldName,
-        dimensions: node.selectionSet?.selections
-          .map(selection => (selection as FieldNode).name.value)
-          .filter(field => !NON_DIMENSION_FIELDS.includes(field)),
-        ...args,
-      })
-    );
+    return metricService.queryMetric({
+      metric_name: fieldName,
+      dimensions: node.selectionSet?.selections
+        .map(selection => (selection as FieldNode).name.value)
+        .filter(field => !NON_DIMENSION_FIELDS.includes(field)),
+      ...args,
+    });
   }
 
   const root = availableMetrics.reduce((prev, current) => {

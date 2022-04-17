@@ -1,7 +1,7 @@
 /* GraphQL methods */
 import { graphqlHTTP } from 'express-graphql';
 import { GraphQLFloat, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLSchema, GraphQLString, printSchema, } from 'graphql';
-import { listMetrics, queryMetric, } from '../services/metricService.js';
+import metricService from '../services/MetricService/index.js';
 import express from 'express';
 const router = express.Router();
 const refreshSchema = (_req, res) => {
@@ -23,7 +23,7 @@ export function graphqlInit() {
     });
     let availableMetrics = [];
     try {
-        availableMetrics = listMetrics();
+        availableMetrics = metricService.listMetrics();
     }
     catch (error) {
         console.warn(error);
@@ -50,7 +50,7 @@ export function graphqlInit() {
         var _a;
         const NON_DIMENSION_FIELDS = [fieldName, 'period'];
         const [node] = fieldNodes;
-        return JSON.parse(queryMetric(Object.assign({ metric_name: fieldName, dimensions: (_a = node.selectionSet) === null || _a === void 0 ? void 0 : _a.selections.map(selection => selection.name.value).filter(field => !NON_DIMENSION_FIELDS.includes(field)) }, args)));
+        return metricService.queryMetric(Object.assign({ metric_name: fieldName, dimensions: (_a = node.selectionSet) === null || _a === void 0 ? void 0 : _a.selections.map(selection => selection.name.value).filter(field => !NON_DIMENSION_FIELDS.includes(field)) }, args));
     }
     const root = availableMetrics.reduce((prev, current) => {
         return Object.assign(Object.assign({}, prev), { [current.name]: metricResolver });
