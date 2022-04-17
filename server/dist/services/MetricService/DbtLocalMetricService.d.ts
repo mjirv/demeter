@@ -1,4 +1,4 @@
-import { DBTResource, MetricService, QueryParams, Selectors } from './MetricService.js';
+import { DBTResource, MetricService, QueryParams, Selectors } from './types/index.js';
 interface DbtMetricService extends MetricService {
     installMetricsPackage: () => void;
     listMetrics: (name?: string, selectors?: Selectors) => DBTResource[];

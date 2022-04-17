@@ -1,9 +1,22 @@
-import { execFileSync, execSync } from 'child_process';
+import { execFileSync } from 'child_process';
+import fs from 'fs';
+import yaml from 'js-yaml';
 export default class DbtLocalMetricService {
     constructor(dbtProjectPath) {
         this.installMetricsPackage = () => {
+            const PACKAGE_YAML_PATH = `${this.dbtProjectPath}/packages.yml`;
+            const METRICS_API_PACKAGE = {
+                git: 'https://github.com/mjirv/dbt-metrics-api.git',
+                revision: 'main',
+            };
             console.debug('called installMetricsPackage');
-            execSync('echo -e "\n  - git: https://github.com/mjirv/dbt-metrics-api.git\n    revision: main" >> packages.yml', { cwd: this.dbtProjectPath, shell: 'bash' });
+            const { packages } = yaml.load(fs.readFileSync(PACKAGE_YAML_PATH, 'utf-8'));
+            console.info(packages);
+            if (!(packages === null || packages === void 0 ? void 0 : packages.find(el => el.git === METRICS_API_PACKAGE.git))) {
+                console.debug('adding metrics package to packages.yml');
+                packages.push(METRICS_API_PACKAGE);
+                fs.writeFileSync(PACKAGE_YAML_PATH, yaml.dump({ packages }));
+            }
             execFileSync('dbt', ['deps'], { cwd: this.dbtProjectPath });
         };
         this.listMetrics = (name, selectors = {}) => {

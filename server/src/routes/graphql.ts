@@ -12,10 +12,7 @@ import {
   printSchema,
 } from 'graphql';
 import metricService from '../services/MetricService/index.js';
-import type {
-  DBTResource,
-  Grain,
-} from '../services/MetricService/MetricService.js';
+import type {DBTResource, Grain} from '../services/MetricService/index.js';
 import express, {NextFunction, Request, Response} from 'express';
 
 const router = express.Router();

@@ -4,12 +4,18 @@ import {
   MetricService,
   QueryParams,
   Selectors,
-} from './MetricService.js';
+} from './types/index.js';
+import fs from 'fs';
+import yaml from 'js-yaml';
 
 interface DbtMetricService extends MetricService {
   installMetricsPackage: () => void;
   listMetrics: (name?: string, selectors?: Selectors) => DBTResource[];
   queryMetric: (params: QueryParams) => Record<string, string | number>;
+}
+
+interface PackageYaml {
+  packages: Record<string, string>[];
 }
 
 export default class DbtLocalMetricService implements DbtMetricService {
@@ -20,11 +26,24 @@ export default class DbtLocalMetricService implements DbtMetricService {
   }
 
   installMetricsPackage = () => {
+    const PACKAGE_YAML_PATH = `${this.dbtProjectPath}/packages.yml`;
+    const METRICS_API_PACKAGE = {
+      git: 'https://github.com/mjirv/dbt-metrics-api.git',
+      revision: 'main',
+    };
+
     console.debug('called installMetricsPackage');
-    execSync(
-      'echo -e "\n  - git: https://github.com/mjirv/dbt-metrics-api.git\n    revision: main" >> packages.yml',
-      {cwd: this.dbtProjectPath, shell: 'bash'}
-    );
+
+    const {packages} = yaml.load(
+      fs.readFileSync(PACKAGE_YAML_PATH, 'utf-8')
+    ) as PackageYaml;
+    console.info(packages);
+    if (!packages?.find(el => el.git === METRICS_API_PACKAGE.git)) {
+      console.debug('adding metrics package to packages.yml');
+      packages.push(METRICS_API_PACKAGE);
+      fs.writeFileSync(PACKAGE_YAML_PATH, yaml.dump({packages}));
+    }
+
     execFileSync('dbt', ['deps'], {cwd: this.dbtProjectPath});
   };
 

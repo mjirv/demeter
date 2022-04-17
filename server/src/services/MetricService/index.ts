@@ -4,4 +4,5 @@ const metricService = new DbtLocalMetricService(
   gitService.dir || process.env.DBT_PROJECT_PATH
 );
 
+export * from './types/index.js';
 export default metricService;
