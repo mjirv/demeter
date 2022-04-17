@@ -2,7 +2,7 @@ import { execFileSync } from 'child_process';
 import fs from 'fs';
 import yaml from 'js-yaml';
 export default class DbtLocalMetricService {
-    constructor(dbtProjectPath) {
+    constructor(dbtProjectPath, target, profile, profileVariables) {
         this.installMetricsPackage = () => {
             const PACKAGE_YAML_PATH = `${this.dbtProjectPath}/packages.yml`;
             const METRICS_API_PACKAGE = {
@@ -34,7 +34,7 @@ export default class DbtLocalMetricService {
                     '--output-keys',
                     '"name model label description type time_grains dimensions filters unique_id package_name"',
                     ...(select ? [select] : []),
-                ], { cwd: this.dbtProjectPath, encoding: 'utf-8' })
+                ], { cwd: this.dbtProjectPath, encoding: 'utf-8', env: this.credentials })
                     .trimEnd()
                     .match(/\{.*\}/i)) === null || _a === void 0 ? void 0 : _a.toString().replace(/\n/g, ',')) +
                 ']';
@@ -56,7 +56,7 @@ export default class DbtLocalMetricService {
             const { metric_name, grain, dimensions, start_date, end_date, format = 'json', } = params;
             const raw_output = execFileSync('dbt', [
                 'run-operation',
-                ...(process.env.DBT_TARGET ? ['--target', process.env.DBT_TARGET] : []),
+                ...(this.target ? ['--target', this.target] : []),
                 'dbt_metrics_api.run_metric',
                 '--args',
                 `${JSON.stringify({
@@ -67,7 +67,7 @@ export default class DbtLocalMetricService {
                     end_date,
                     format,
                 })}`,
-            ], { cwd: this.dbtProjectPath, encoding: 'utf-8' }).toString();
+            ], { cwd: this.dbtProjectPath, encoding: 'utf-8', env: this.credentials }).toString();
             console.debug(raw_output);
             const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
             return JSON.parse(raw_output.slice(raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length));
@@ -75,6 +75,8 @@ export default class DbtLocalMetricService {
         if (!dbtProjectPath)
             throw Error('no dbt project path given');
         this.dbtProjectPath = dbtProjectPath;
+        this.target = target;
+        this.credentials = profileVariables === null || profileVariables === void 0 ? void 0 : profileVariables.credentials;
     }
 }
 //# sourceMappingURL=DbtLocalMetricService.js.map

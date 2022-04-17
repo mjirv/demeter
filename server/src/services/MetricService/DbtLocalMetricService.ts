@@ -14,51 +14,22 @@ interface DbtMetricService extends MetricService {
   queryMetric: (params: QueryParams) => Record<string, string | number>;
 }
 
-interface BigqueryKeyfileCredentials {
-  type: string;
-  projectId: string;
-  privateKeyId: string;
-  privateKey: string;
-  clientEmail: string;
-  clientId: string;
-  authUri: string;
-  tokenUri: string;
-  authProviderX509CertUrl: string;
-  clientX509CertUrl: string;
-}
-
-interface BigqueryRefreshTokenCredentials {
-  refreshToken: string;
-  clientId: string;
-  clientSecret: string;
-  tokenUri: string;
-}
-
-type BigqueryCredentials =
-  | BigqueryKeyfileCredentials
-  | BigqueryRefreshTokenCredentials;
-
-interface StandardCredentials {
-  user: string;
-  password: string;
-}
-
-type DbtWarehouseCredentials = BigqueryCredentials | StandardCredentials;
+type Credentials = Record<string, string>;
 
 interface BigqueryProfile {
-  credentials: BigqueryCredentials;
+  credentials: Credentials;
 }
 
 interface PostgresProfile {
-  credentials: StandardCredentials;
+  credentials: Credentials;
 }
 
 interface RedshiftProfile {
-  credentials: StandardCredentials;
+  credentials: Credentials;
 }
 
 interface SnowflakeProfile {
-  credentials: StandardCredentials;
+  credentials: Credentials;
 }
 
 type DbtProfile =
@@ -73,7 +44,7 @@ interface PackageYaml {
 
 export default class DbtLocalMetricService implements DbtMetricService {
   private dbtProjectPath: string;
-  private credentials?: DbtWarehouseCredentials;
+  private credentials?: Record<string, string>;
   private target?: string;
   constructor(
     dbtProjectPath?: string,
