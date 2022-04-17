@@ -1,4 +1,4 @@
-import {execFileSync, execSync} from 'child_process';
+import {execFileSync} from 'child_process';
 import {
   DBTResource,
   MetricService,
