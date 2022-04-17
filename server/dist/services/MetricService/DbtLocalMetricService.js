@@ -34,8 +34,7 @@ export default class DbtLocalMetricService {
                     '--output-keys',
                     '"name model label description type time_grains dimensions filters unique_id package_name"',
                     ...(select ? [select] : []),
-                ], { cwd: this.dbtProjectPath })
-                    .toString()
+                ], { cwd: this.dbtProjectPath, encoding: 'utf-8' })
                     .trimEnd()
                     .match(/\{.*\}/i)) === null || _a === void 0 ? void 0 : _a.toString().replace(/\n/g, ',')) +
                 ']';

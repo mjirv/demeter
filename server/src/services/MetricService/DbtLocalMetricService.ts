@@ -14,15 +14,77 @@ interface DbtMetricService extends MetricService {
   queryMetric: (params: QueryParams) => Record<string, string | number>;
 }
 
+interface BigqueryKeyfileCredentials {
+  type: string;
+  projectId: string;
+  privateKeyId: string;
+  privateKey: string;
+  clientEmail: string;
+  clientId: string;
+  authUri: string;
+  tokenUri: string;
+  authProviderX509CertUrl: string;
+  clientX509CertUrl: string;
+}
+
+interface BigqueryRefreshTokenCredentials {
+  refreshToken: string;
+  clientId: string;
+  clientSecret: string;
+  tokenUri: string;
+}
+
+type BigqueryCredentials =
+  | BigqueryKeyfileCredentials
+  | BigqueryRefreshTokenCredentials;
+
+interface StandardCredentials {
+  user: string;
+  password: string;
+}
+
+type DbtWarehouseCredentials = BigqueryCredentials | StandardCredentials;
+
+interface BigqueryProfile {
+  credentials: BigqueryCredentials;
+}
+
+interface PostgresProfile {
+  credentials: StandardCredentials;
+}
+
+interface RedshiftProfile {
+  credentials: StandardCredentials;
+}
+
+interface SnowflakeProfile {
+  credentials: StandardCredentials;
+}
+
+type DbtProfile =
+  | BigqueryProfile
+  | PostgresProfile
+  | RedshiftProfile
+  | SnowflakeProfile;
+
 interface PackageYaml {
   packages: Record<string, string>[];
 }
 
 export default class DbtLocalMetricService implements DbtMetricService {
   private dbtProjectPath: string;
-  constructor(dbtProjectPath?: string) {
+  private credentials?: DbtWarehouseCredentials;
+  private target?: string;
+  constructor(
+    dbtProjectPath?: string,
+    target?: string,
+    profile?: string,
+    profileVariables?: DbtProfile
+  ) {
     if (!dbtProjectPath) throw Error('no dbt project path given');
     this.dbtProjectPath = dbtProjectPath;
+    this.target = target;
+    this.credentials = profileVariables?.credentials;
   }
 
   installMetricsPackage = () => {
@@ -68,9 +130,8 @@ export default class DbtLocalMetricService implements DbtMetricService {
           '"name model label description type time_grains dimensions filters unique_id package_name"',
           ...(select ? [select] : []),
         ],
-        {cwd: this.dbtProjectPath}
+        {cwd: this.dbtProjectPath, encoding: 'utf-8', env: this.credentials}
       )
-        .toString()
         .trimEnd()
         .match(/\{.*\}/i)
         ?.toString()
@@ -105,7 +166,7 @@ export default class DbtLocalMetricService implements DbtMetricService {
       'dbt',
       [
         'run-operation',
-        ...(process.env.DBT_TARGET ? ['--target', process.env.DBT_TARGET] : []),
+        ...(this.target ? ['--target', this.target] : []),
         'dbt_metrics_api.run_metric',
         '--args',
         `${JSON.stringify({
@@ -117,7 +178,7 @@ export default class DbtLocalMetricService implements DbtMetricService {
           format,
         })}`,
       ],
-      {cwd: this.dbtProjectPath, encoding: 'utf-8'}
+      {cwd: this.dbtProjectPath, encoding: 'utf-8', env: this.credentials}
     ).toString();
     console.debug(raw_output);
     const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
