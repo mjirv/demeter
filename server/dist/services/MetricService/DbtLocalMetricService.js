@@ -1,6 +1,25 @@
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 import { execFileSync } from 'child_process';
 import fs from 'fs';
 import yaml from 'js-yaml';
+import tempy from 'tempy';
+var Warehouse;
+(function (Warehouse) {
+    Warehouse["BIGQUERY"] = "bigquery";
+    Warehouse["POSTGRES"] = "postgres";
+    Warehouse["REDSHIFT"] = "redshift";
+    Warehouse["SNOWFLAKE"] = "snowflake";
+})(Warehouse || (Warehouse = {}));
 export default class DbtLocalMetricService {
     constructor(dbtProjectPath, target, profile, profileVariables) {
         this.installMetricsPackage = () => {
@@ -77,6 +96,31 @@ export default class DbtLocalMetricService {
         this.dbtProjectPath = dbtProjectPath;
         this.target = target;
         this.credentials = profileVariables === null || profileVariables === void 0 ? void 0 : profileVariables.credentials;
+        if (profileVariables) {
+            this.profile = 'mapi_profile';
+            this.target = 'prod';
+            const { credentials } = profileVariables, profileWithoutSecrets = __rest(profileVariables, ["credentials"]);
+            const envVar = (key) => `MAPI_DBT_PROFILE_${key.toUpperCase()}`;
+            this.dbtProfilePath = tempy.directory({ prefix: '_dbt_profile' });
+            console.debug(`profileVariables found; beginning to write profile.yml to directory ${this.dbtProfilePath}`);
+            const credentialsToWrite = Object.fromEntries(Object.keys(credentials).map(key => [
+                key,
+                `{{ env_var('${envVar(key)}') }}`,
+            ]));
+            const profileToWrite = {
+                [this.profile]: {
+                    target: this.target,
+                    outputs: {
+                        [this.target]: Object.assign(Object.assign({}, profileWithoutSecrets), (profileVariables.type === Warehouse.BIGQUERY &&
+                            credentials.method === 'service-account-json'
+                            ? { keyfileJson: credentialsToWrite }
+                            : credentialsToWrite)),
+                    },
+                },
+            };
+            fs.writeFileSync(`${this.dbtProfilePath}/profiles.yml`, yaml.dump(profileToWrite));
+            console.debug('successfully wrote profile.yml');
+        }
     }
 }
 //# sourceMappingURL=DbtLocalMetricService.js.map

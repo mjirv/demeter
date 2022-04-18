@@ -7,6 +7,7 @@ import {
 } from './types/index.js';
 import fs from 'fs';
 import yaml from 'js-yaml';
+import tempy from 'tempy';
 
 interface DbtMetricService extends MetricService {
   installMetricsPackage: () => void;
@@ -14,21 +15,32 @@ interface DbtMetricService extends MetricService {
   queryMetric: (params: QueryParams) => Record<string, string | number>;
 }
 
+enum Warehouse {
+  BIGQUERY = 'bigquery',
+  POSTGRES = 'postgres',
+  REDSHIFT = 'redshift',
+  SNOWFLAKE = 'snowflake',
+}
+
 type Credentials = Record<string, string>;
 
 interface BigqueryProfile {
+  type: Warehouse.BIGQUERY;
   credentials: Credentials;
 }
 
 interface PostgresProfile {
+  type: Warehouse.POSTGRES;
   credentials: Credentials;
 }
 
 interface RedshiftProfile {
+  type: Warehouse.REDSHIFT;
   credentials: Credentials;
 }
 
 interface SnowflakeProfile {
+  type: Warehouse.SNOWFLAKE;
   credentials: Credentials;
 }
 
@@ -44,6 +56,8 @@ interface PackageYaml {
 
 export default class DbtLocalMetricService implements DbtMetricService {
   private dbtProjectPath: string;
+  private dbtProfilePath?: string;
+  private profile?: string;
   private credentials?: Record<string, string>;
   private target?: string;
   constructor(
@@ -56,6 +70,42 @@ export default class DbtLocalMetricService implements DbtMetricService {
     this.dbtProjectPath = dbtProjectPath;
     this.target = target;
     this.credentials = profileVariables?.credentials;
+
+    if (profileVariables) {
+      this.profile = 'mapi_profile';
+      this.target = 'prod';
+      const {credentials, ...profileWithoutSecrets} = profileVariables;
+      const envVar = (key: string) => `MAPI_DBT_PROFILE_${key.toUpperCase()}`;
+      this.dbtProfilePath = tempy.directory({prefix: '_dbt_profile'});
+      console.debug(
+        `profileVariables found; beginning to write profile.yml to directory ${this.dbtProfilePath}`
+      );
+      const credentialsToWrite = Object.fromEntries(
+        Object.keys(credentials).map(key => [
+          key,
+          `{{ env_var('${envVar(key)}') }}`,
+        ])
+      );
+      const profileToWrite = {
+        [this.profile]: {
+          target: this.target,
+          outputs: {
+            [this.target]: {
+              ...profileWithoutSecrets,
+              ...(profileVariables.type === Warehouse.BIGQUERY &&
+              credentials.method === 'service-account-json'
+                ? {keyfileJson: credentialsToWrite}
+                : credentialsToWrite),
+            },
+          },
+        },
+      };
+      fs.writeFileSync(
+        `${this.dbtProfilePath}/profiles.yml`,
+        yaml.dump(profileToWrite)
+      );
+      console.debug('successfully wrote profile.yml');
+    }
   }
 
   installMetricsPackage = () => {
