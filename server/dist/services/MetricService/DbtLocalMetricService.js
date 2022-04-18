@@ -13,7 +13,7 @@ import { execFileSync } from 'child_process';
 import fs from 'fs';
 import yaml from 'js-yaml';
 import tempy from 'tempy';
-var Warehouse;
+export var Warehouse;
 (function (Warehouse) {
     Warehouse["BIGQUERY"] = "bigquery";
     Warehouse["POSTGRES"] = "postgres";
@@ -21,7 +21,7 @@ var Warehouse;
     Warehouse["SNOWFLAKE"] = "snowflake";
 })(Warehouse || (Warehouse = {}));
 export default class DbtLocalMetricService {
-    constructor(dbtProjectPath, target, profile, profileVariables) {
+    constructor(props) {
         this.installMetricsPackage = () => {
             const PACKAGE_YAML_PATH = `${this.dbtProjectPath}/packages.yml`;
             const METRICS_API_PACKAGE = {
@@ -53,6 +53,10 @@ export default class DbtLocalMetricService {
                     '--output-keys',
                     '"name model label description type time_grains dimensions filters unique_id package_name"',
                     ...(select ? [select] : []),
+                    ...(this.profile ? ['--profile', this.profile] : []),
+                    ...(this.dbtProfilePath
+                        ? ['--profiles-dir', this.dbtProfilePath]
+                        : []),
                 ], { cwd: this.dbtProjectPath, encoding: 'utf-8', env: this.credentials })
                     .trimEnd()
                     .match(/\{.*\}/i)) === null || _a === void 0 ? void 0 : _a.toString().replace(/\n/g, ',')) +
@@ -91,20 +95,22 @@ export default class DbtLocalMetricService {
             const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
             return JSON.parse(raw_output.slice(raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length));
         };
+        const { dbtProjectPath, target, profile, profileVariables } = props;
         if (!dbtProjectPath)
             throw Error('no dbt project path given');
         this.dbtProjectPath = dbtProjectPath;
         this.target = target;
         this.credentials = profileVariables === null || profileVariables === void 0 ? void 0 : profileVariables.credentials;
+        this.profile = profile;
         if (profileVariables) {
             this.profile = 'mapi_profile';
             this.target = 'prod';
             const { credentials } = profileVariables, profileWithoutSecrets = __rest(profileVariables, ["credentials"]);
-            const envVar = (key) => `MAPI_DBT_PROFILE_${key.toUpperCase()}`;
+            const envVar = (key) => `MAPI_${key.toUpperCase()}`;
             this.dbtProfilePath = tempy.directory({ prefix: '_dbt_profile' });
             console.debug(`profileVariables found; beginning to write profile.yml to directory ${this.dbtProfilePath}`);
             const credentialsToWrite = Object.fromEntries(Object.keys(credentials).map(key => [
-                key,
+                key.replace('DBT_PROFILE_', '').toLowerCase(),
                 `{{ env_var('${envVar(key)}') }}`,
             ]));
             const profileToWrite = {
@@ -118,6 +124,7 @@ export default class DbtLocalMetricService {
                     },
                 },
             };
+            this.credentials = Object.fromEntries(Object.entries(credentials).map(([k, v]) => [envVar(k), v]));
             fs.writeFileSync(`${this.dbtProfilePath}/profiles.yml`, yaml.dump(profileToWrite));
             console.debug('successfully wrote profile.yml');
         }

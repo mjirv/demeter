@@ -4,7 +4,7 @@ interface DbtMetricService extends MetricService {
     listMetrics: (name?: string, selectors?: Selectors) => DBTResource[];
     queryMetric: (params: QueryParams) => Record<string, string | number>;
 }
-declare enum Warehouse {
+export declare enum Warehouse {
     BIGQUERY = "bigquery",
     POSTGRES = "postgres",
     REDSHIFT = "redshift",
@@ -27,14 +27,19 @@ interface SnowflakeProfile {
     type: Warehouse.SNOWFLAKE;
     credentials: Credentials;
 }
-declare type DbtProfile = BigqueryProfile | PostgresProfile | RedshiftProfile | SnowflakeProfile;
+export declare type DbtProfile = BigqueryProfile | PostgresProfile | RedshiftProfile | SnowflakeProfile;
 export default class DbtLocalMetricService implements DbtMetricService {
     private dbtProjectPath;
     private dbtProfilePath?;
     private profile?;
     private credentials?;
     private target?;
-    constructor(dbtProjectPath?: string, target?: string, profile?: string, profileVariables?: DbtProfile);
+    constructor(props: {
+        dbtProjectPath?: string;
+        target?: string;
+        profile?: string;
+        profileVariables?: DbtProfile;
+    });
     installMetricsPackage: () => void;
     listMetrics: (name?: string | undefined, selectors?: Selectors) => DBTResource[];
     queryMetric: (params: QueryParams) => Record<string, string | number>;

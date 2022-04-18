@@ -15,7 +15,7 @@ interface DbtMetricService extends MetricService {
   queryMetric: (params: QueryParams) => Record<string, string | number>;
 }
 
-enum Warehouse {
+export enum Warehouse {
   BIGQUERY = 'bigquery',
   POSTGRES = 'postgres',
   REDSHIFT = 'redshift',
@@ -44,7 +44,7 @@ interface SnowflakeProfile {
   credentials: Credentials;
 }
 
-type DbtProfile =
+export type DbtProfile =
   | BigqueryProfile
   | PostgresProfile
   | RedshiftProfile
@@ -60,29 +60,31 @@ export default class DbtLocalMetricService implements DbtMetricService {
   private profile?: string;
   private credentials?: Record<string, string>;
   private target?: string;
-  constructor(
-    dbtProjectPath?: string,
-    target?: string,
-    profile?: string,
-    profileVariables?: DbtProfile
-  ) {
+  constructor(props: {
+    dbtProjectPath?: string;
+    target?: string;
+    profile?: string;
+    profileVariables?: DbtProfile;
+  }) {
+    const {dbtProjectPath, target, profile, profileVariables} = props;
     if (!dbtProjectPath) throw Error('no dbt project path given');
     this.dbtProjectPath = dbtProjectPath;
     this.target = target;
     this.credentials = profileVariables?.credentials;
+    this.profile = profile;
 
     if (profileVariables) {
       this.profile = 'mapi_profile';
       this.target = 'prod';
       const {credentials, ...profileWithoutSecrets} = profileVariables;
-      const envVar = (key: string) => `MAPI_DBT_PROFILE_${key.toUpperCase()}`;
+      const envVar = (key: string) => `MAPI_${key.toUpperCase()}`;
       this.dbtProfilePath = tempy.directory({prefix: '_dbt_profile'});
       console.debug(
         `profileVariables found; beginning to write profile.yml to directory ${this.dbtProfilePath}`
       );
       const credentialsToWrite = Object.fromEntries(
         Object.keys(credentials).map(key => [
-          key,
+          key.replace('DBT_PROFILE_', '').toLowerCase(),
           `{{ env_var('${envVar(key)}') }}`,
         ])
       );
@@ -100,6 +102,9 @@ export default class DbtLocalMetricService implements DbtMetricService {
           },
         },
       };
+      this.credentials = Object.fromEntries(
+        Object.entries(credentials).map(([k, v]) => [envVar(k), v])
+      );
       fs.writeFileSync(
         `${this.dbtProfilePath}/profiles.yml`,
         yaml.dump(profileToWrite)
@@ -150,6 +155,10 @@ export default class DbtLocalMetricService implements DbtMetricService {
           '--output-keys',
           '"name model label description type time_grains dimensions filters unique_id package_name"',
           ...(select ? [select] : []),
+          ...(this.profile ? ['--profile', this.profile] : []),
+          ...(this.dbtProfilePath
+            ? ['--profiles-dir', this.dbtProfilePath]
+            : []),
         ],
         {cwd: this.dbtProjectPath, encoding: 'utf-8', env: this.credentials}
       )
