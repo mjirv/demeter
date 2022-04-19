@@ -74,8 +74,6 @@ export function graphqlInit() {
     query: QueryType,
   });
 
-  console.info(printSchema(schema));
-
   interface MetricArgs {
     grain: Grain;
     start_date?: string;

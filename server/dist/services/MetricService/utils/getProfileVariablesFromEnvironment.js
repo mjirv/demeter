@@ -1,4 +1,3 @@
-import { Warehouse } from '../DbtLocalMetricService.js';
 const getProfileVariablesFromEnv = () => {
     const CREDENTIAL_KEYS = [
         'USER',
@@ -28,7 +27,8 @@ const getProfileVariablesFromEnv = () => {
         key.replace('DBT_PROFILE_', '').toLowerCase(),
         value,
     ]));
-    return Object.assign(Object.assign({}, profileVariables), { type: profileVariables.type || Warehouse.POSTGRES, credentials: Object.assign({}, credentials) });
+    return Object.keys(profileVariables).length > 0
+        ? Object.assign(Object.assign({}, profileVariables), { type: profileVariables.type, credentials: Object.assign({}, credentials) }) : undefined;
 };
 export default getProfileVariablesFromEnv;
 //# sourceMappingURL=getProfileVariablesFromEnvironment.js.map

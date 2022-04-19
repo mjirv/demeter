@@ -1,6 +1,6 @@
 import {DbtProfile, Warehouse} from '../DbtLocalMetricService.js';
 
-const getProfileVariablesFromEnv = (): DbtProfile => {
+const getProfileVariablesFromEnv = (): DbtProfile | undefined => {
   const CREDENTIAL_KEYS = [
     'USER',
     'PASSWORD',
@@ -42,11 +42,13 @@ const getProfileVariablesFromEnv = (): DbtProfile => {
       ])
   ) as Record<string, string>;
 
-  return {
-    ...profileVariables,
-    type: (profileVariables.type as Warehouse) || Warehouse.POSTGRES,
-    credentials: {...credentials},
-  };
+  return Object.keys(profileVariables).length > 0
+    ? {
+        ...profileVariables,
+        type: profileVariables.type as Warehouse,
+        credentials: {...credentials},
+      }
+    : undefined;
 };
 
 export default getProfileVariablesFromEnv;

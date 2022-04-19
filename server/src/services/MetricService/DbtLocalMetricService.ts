@@ -125,7 +125,6 @@ export default class DbtLocalMetricService implements DbtMetricService {
     const {packages} = yaml.load(
       fs.readFileSync(PACKAGE_YAML_PATH, 'utf-8')
     ) as PackageYaml;
-    console.info(packages);
     if (!packages?.find(el => el.git === METRICS_API_PACKAGE.git)) {
       console.debug('adding metrics package to packages.yml');
       packages.push(METRICS_API_PACKAGE);
@@ -147,7 +146,6 @@ export default class DbtLocalMetricService implements DbtMetricService {
     const {type, model, package_name} = selectors;
 
     const select = name ? `--select "metric:${name.replace(/"/g, '')}"` : '';
-    console.info(this.credentials);
     const res =
       '[' +
       execFileSync(
@@ -177,7 +175,6 @@ export default class DbtLocalMetricService implements DbtMetricService {
         ?.toString()
         .replace(/\n/g, ',') +
       ']';
-    console.info(res);
     let metrics = JSON.parse(res) as DBTResource[];
     if (type) {
       metrics = metrics.filter(metric => metric.type === type);
@@ -226,7 +223,6 @@ export default class DbtLocalMetricService implements DbtMetricService {
         env: {...process.env, ...this.credentials},
       }
     ).toString();
-    console.debug(raw_output);
     const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
     return JSON.parse(
       raw_output.slice(raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length)

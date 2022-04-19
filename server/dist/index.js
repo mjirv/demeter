@@ -35,8 +35,6 @@ const kable = process.env.KABLE_CLIENT_ID &&
         recordAuthentication: true,
     });
 kable && app.use(kable.authenticate);
-console.info(`token: ${process.env.GITHUB_ACCESS_TOKEN}`);
-console.info(`repo: ${process.env.GITHUB_REPOSITORY}`);
 // Copy and initialize the dbt repo from Github if needed
 if (process.env.GITHUB_REPOSITORY) {
     await githubService.clone(process.env.GITHUB_REPOSITORY);

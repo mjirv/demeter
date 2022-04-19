@@ -1,6 +1,6 @@
 /* GraphQL methods */
 import { graphqlHTTP } from 'express-graphql';
-import { GraphQLFloat, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLSchema, GraphQLString, printSchema, } from 'graphql';
+import { GraphQLFloat, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLSchema, GraphQLString, } from 'graphql';
 import metricService from '../services/MetricService/index.js';
 import express from 'express';
 const router = express.Router();
@@ -45,7 +45,6 @@ export function graphqlInit() {
     const schema = new GraphQLSchema({
         query: QueryType,
     });
-    console.info(printSchema(schema));
     function metricResolver(args, _context, { fieldName, fieldNodes }) {
         var _a;
         const NON_DIMENSION_FIELDS = [fieldName, 'period'];
