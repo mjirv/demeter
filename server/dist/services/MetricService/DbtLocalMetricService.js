@@ -36,13 +36,20 @@ export default class DbtLocalMetricService {
                 packages.push(METRICS_API_PACKAGE);
                 fs.writeFileSync(PACKAGE_YAML_PATH, yaml.dump({ packages }));
             }
-            execFileSync('dbt', ['deps'], { cwd: this.dbtProjectPath });
+            try {
+                execFileSync('dbt', ['deps'], { cwd: this.dbtProjectPath });
+            }
+            catch (error) {
+                console.error(error);
+                throw error;
+            }
         };
         this.listMetrics = (name, selectors = {}) => {
             var _a;
             console.debug(`called listMetrics with params ${JSON.stringify({ name, selectors })}`);
             const { type, model, package_name } = selectors;
             const select = name ? `--select "metric:${name.replace(/"/g, '')}"` : '';
+            console.info(this.credentials);
             const res = '[' +
                 ((_a = execFileSync('dbt', [
                     'ls',
@@ -57,7 +64,11 @@ export default class DbtLocalMetricService {
                     ...(this.dbtProfilePath
                         ? ['--profiles-dir', this.dbtProfilePath]
                         : []),
-                ], { cwd: this.dbtProjectPath, encoding: 'utf-8', env: this.credentials })
+                ], {
+                    cwd: this.dbtProjectPath,
+                    encoding: 'utf-8',
+                    env: Object.assign(Object.assign({}, process.env), this.credentials),
+                })
                     .trimEnd()
                     .match(/\{.*\}/i)) === null || _a === void 0 ? void 0 : _a.toString().replace(/\n/g, ',')) +
                 ']';
@@ -80,6 +91,8 @@ export default class DbtLocalMetricService {
             const raw_output = execFileSync('dbt', [
                 'run-operation',
                 ...(this.target ? ['--target', this.target] : []),
+                ...(this.profile ? ['--profile', this.profile] : []),
+                ...(this.dbtProfilePath ? ['--profiles-dir', this.dbtProfilePath] : []),
                 'dbt_metrics_api.run_metric',
                 '--args',
                 `${JSON.stringify({
@@ -90,7 +103,11 @@ export default class DbtLocalMetricService {
                     end_date,
                     format,
                 })}`,
-            ], { cwd: this.dbtProjectPath, encoding: 'utf-8', env: this.credentials }).toString();
+            ], {
+                cwd: this.dbtProjectPath,
+                encoding: 'utf-8',
+                env: Object.assign(Object.assign({}, process.env), this.credentials),
+            }).toString();
             console.debug(raw_output);
             const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
             return JSON.parse(raw_output.slice(raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length));
@@ -106,11 +123,11 @@ export default class DbtLocalMetricService {
             this.profile = 'mapi_profile';
             this.target = 'prod';
             const { credentials } = profileVariables, profileWithoutSecrets = __rest(profileVariables, ["credentials"]);
-            const envVar = (key) => `MAPI_${key.toUpperCase()}`;
+            const envVar = (key) => `MAPI_DBT_PROFILE_${key.toUpperCase()}`;
             this.dbtProfilePath = tempy.directory({ prefix: '_dbt_profile' });
             console.debug(`profileVariables found; beginning to write profile.yml to directory ${this.dbtProfilePath}`);
             const credentialsToWrite = Object.fromEntries(Object.keys(credentials).map(key => [
-                key.replace('DBT_PROFILE_', '').toLowerCase(),
+                key,
                 `{{ env_var('${envVar(key)}') }}`,
             ]));
             const profileToWrite = {

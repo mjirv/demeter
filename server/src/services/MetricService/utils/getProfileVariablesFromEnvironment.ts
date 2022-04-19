@@ -17,19 +17,29 @@ const getProfileVariablesFromEnv = (): DbtProfile => {
   ];
 
   const profileVariables = Object.fromEntries(
-    Object.entries(process.env).filter(
-      ([key]) =>
-        key.startsWith('DBT_PROFILE_') &&
-        !CREDENTIAL_KEYS.includes(key.replace('DBT_PROFILE_', ''))
-    )
+    Object.entries(process.env)
+      .filter(
+        ([key]) =>
+          key.startsWith('DBT_PROFILE_') &&
+          !CREDENTIAL_KEYS.includes(key.replace('DBT_PROFILE_', ''))
+      )
+      .map(([key, value]) => [
+        key.replace('DBT_PROFILE_', '').toLowerCase(),
+        Number(value) || value,
+      ])
   );
 
   const credentials = Object.fromEntries(
-    Object.entries(process.env).filter(
-      ([key]) =>
-        key.startsWith('DBT_PROFILE_') &&
-        CREDENTIAL_KEYS.includes(key.replace('DBT_PROFILE_', ''))
-    )
+    Object.entries(process.env)
+      .filter(
+        ([key]) =>
+          key.startsWith('DBT_PROFILE_') &&
+          CREDENTIAL_KEYS.includes(key.replace('DBT_PROFILE_', ''))
+      )
+      .map(([key, value]) => [
+        key.replace('DBT_PROFILE_', '').toLowerCase(),
+        value,
+      ])
   ) as Record<string, string>;
 
   return {

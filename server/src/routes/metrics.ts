@@ -23,6 +23,7 @@ router.get('/:name', (req, res) => {
   const {name} = req.params;
   try {
     const [metric] = metricService.listMetrics(name);
+    console.info(metric);
     const output = JSON.stringify(metric);
     res.send(output);
   } catch (error) {
