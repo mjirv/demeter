@@ -1,20 +1,34 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.queryMetric = exports.listMetrics = void 0;
-const child_process_1 = require("child_process");
-const listMetrics = (name, selectors = {}) => {
+import { execFileSync, execSync } from 'child_process';
+import gitService from './gitService.js';
+const DBT_PROJECT_PATH = gitService.dir || process.env.DBT_PROJECT_PATH;
+console.info(DBT_PROJECT_PATH);
+export const installMetricsPackage = () => {
+    console.debug('called installMetricsPackage');
+    execSync('echo -e "\n  - git: https://github.com/mjirv/dbt-metrics-api.git\n    revision: main" >> packages.yml', { cwd: DBT_PROJECT_PATH, shell: 'bash' });
+    execFileSync('dbt', ['deps'], { cwd: DBT_PROJECT_PATH });
+};
+export const listMetrics = (name, selectors = {}) => {
+    var _a;
     console.debug(`called listMetrics with params ${JSON.stringify({ name, selectors })}`);
     const { type, model, package_name } = selectors;
-    // TODO: added some basic replacement to prevent bash injection, but I should clean this up here and elsewhere
     const select = name ? `--select "metric:${name.replace(/"/g, '')}"` : '';
-    let metrics = JSON.parse('[' +
-        (0, child_process_1.execSync)(`cd ${process.env.DBT_PROJECT_PATH} &&\
-          dbt ls --resource-type metric --output json \
-          --output-keys "name model label description type time_grains dimensions filters unique_id package_name" \
-          ${select}`, { encoding: 'utf-8' })
+    const res = '[' +
+        ((_a = execFileSync('dbt', [
+            'ls',
+            '--resource-type',
+            'metric',
+            '--output',
+            'json',
+            '--output-keys',
+            '"name model label description type time_grains dimensions filters unique_id package_name"',
+            ...(select ? [select] : []),
+        ], { cwd: DBT_PROJECT_PATH })
+            .toString()
             .trimEnd()
-            .replace(/\n/g, ',') +
-        ']');
+            .match(/\{.*\}/i)) === null || _a === void 0 ? void 0 : _a.toString().replace(/\n/g, ',')) +
+        ']';
+    console.info(res);
+    let metrics = JSON.parse(res);
     if (type) {
         metrics = metrics.filter(metric => metric.type === type);
     }
@@ -26,23 +40,25 @@ const listMetrics = (name, selectors = {}) => {
     }
     return metrics;
 };
-exports.listMetrics = listMetrics;
-const queryMetric = (params) => {
+export const queryMetric = (params) => {
     console.debug(`called queryMetric with params ${JSON.stringify(params)}`);
     const { metric_name, grain, dimensions, start_date, end_date, format = 'json', } = params;
-    const raw_output = (0, child_process_1.execSync)(`cd ${process.env.DBT_PROJECT_PATH} &&\
-          dbt run-operation --target ${process.env.DBT_TARGET} dbt_metrics_api.run_metric --args '${JSON.stringify({
-        metric_name,
-        grain,
-        dimensions,
-        start_date,
-        end_date,
-        format,
-    })}'
-      `, { encoding: 'utf-8' });
+    const raw_output = execFileSync('dbt', [
+        'run-operation',
+        ...(process.env.DBT_TARGET ? ['--target', process.env.DBT_TARGET] : []),
+        'dbt_metrics_api.run_metric',
+        '--args',
+        `${JSON.stringify({
+            metric_name,
+            grain,
+            dimensions,
+            start_date,
+            end_date,
+            format,
+        })}`,
+    ], { cwd: DBT_PROJECT_PATH, encoding: 'utf-8' }).toString();
     console.debug(raw_output);
     const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
     return raw_output.slice(raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length);
 };
-exports.queryMetric = queryMetric;
 //# sourceMappingURL=metricService.js.map

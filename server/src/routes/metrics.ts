@@ -1,5 +1,5 @@
 import express from 'express';
-import {listMetrics, queryMetric} from '../services/metricService';
+import metricService from '../services/MetricService/index.js';
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.get('/', (req, res) => {
   const {name, type, model, package_name} = req.query as Record<string, string>;
   try {
     const output = JSON.stringify(
-      listMetrics(name, {type, model, package_name})
+      metricService.listMetrics(name, {type, model, package_name})
     );
     res.send(output);
   } catch (error) {
@@ -22,7 +22,7 @@ router.get('/', (req, res) => {
 router.get('/:name', (req, res) => {
   const {name} = req.params;
   try {
-    const [metric] = listMetrics(name);
+    const [metric] = metricService.listMetrics(name);
     const output = JSON.stringify(metric);
     res.send(output);
   } catch (error) {
@@ -58,7 +58,7 @@ router.post('/:metric_name', (req, res) => {
       .send({error: 'grain is a required property; no grain given'});
   }
   try {
-    const output = queryMetric({
+    const output = metricService.queryMetric({
       metric_name,
       grain,
       dimensions,

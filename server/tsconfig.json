@@ -5,7 +5,9 @@
     "outDir": "dist",
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "lib": ["es2019"],
+    "lib": ["es2020"],
+    "module": "esnext",
+    "target": "es2017"
   },
   "include": [
     "src/**/*.ts",

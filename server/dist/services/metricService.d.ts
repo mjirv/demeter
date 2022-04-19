@@ -1,3 +1,7 @@
+export interface MetricService {
+    listMetrics: (name?: string, selectors?: Selectors) => DBTResource[];
+    queryMetric: (params: QueryParams) => Record<string, string | number>;
+}
 export interface DBTResource {
     name: string;
     label: string;
@@ -15,6 +19,7 @@ interface Selectors {
     model?: string;
     package_name?: string;
 }
+export declare const installMetricsPackage: () => void;
 export declare const listMetrics: (name?: string | undefined, selectors?: Selectors) => DBTResource[];
 export declare type Grain = 'day' | 'week' | 'month' | 'quarter' | 'year';
 interface QueryParams {

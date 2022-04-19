@@ -1,15 +1,14 @@
-import dotenv from 'dotenv';
-dotenv.config({path: `.env.${process.env.NODE_ENV || 'local'}`});
-
+import 'dotenv/config';
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import {Kable} from 'kable-node-express';
-import graphql from './routes/graphql';
-import metrics from './routes/metrics';
-
+import githubService from './services/gitService.js';
+import graphql, {graphqlInit} from './routes/graphql.js';
+import metrics from './routes/metrics.js';
+import metricService from './services/MetricService/index.js';
 
 // defining the Express app
 const app = express();
@@ -48,6 +47,13 @@ const kable =
 
 kable && app.use(kable.authenticate);
 
+// Copy and initialize the dbt repo from Github if needed
+if (process.env.GITHUB_REPOSITORY) {
+  await githubService.clone(process.env.GITHUB_REPOSITORY);
+}
+
+metricService.installMetricsPackage();
+graphqlInit();
 app.use('/metrics', metrics);
 app.use('/graphql', graphql);
 
