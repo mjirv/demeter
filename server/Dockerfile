@@ -1,16 +1,15 @@
 # syntax=docker/dockerfile:1
-FROM node:16-alpine
+FROM node:18
 
 WORKDIR /usr/app
 COPY ./ /usr/app
 
-RUN apk add --no-cache --update python3
+RUN apt-get update && apt-get install -y \
+  python3 \
+  python3-pip
+RUN python3 -m pip install dbt-core dbt-snowflake dbt-redshift dbt-bigquery dbt-postgres
 
 RUN NODE_ENV=production npm install
 
 CMD ["node" "dist/index.js"]
 EXPOSE $PORT
-
-# TODO: Add copying down the Github project (with a URL and deploy token in the .env file?)
-# TODO: add dbt
-# TODO: use connection params passed to generate a profile for dbt and run commands as that profile
