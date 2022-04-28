@@ -11,5 +11,5 @@ RUN python3 -m pip install dbt-core dbt-snowflake dbt-redshift dbt-bigquery dbt-
 
 RUN NODE_ENV=production npm install
 
-CMD ["node" "dist/index.js"]
+CMD ["node", "dist/index.js"]
 EXPOSE $PORT
