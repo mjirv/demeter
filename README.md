@@ -99,7 +99,3 @@ KABLE_ENV=TEST
 ```json
 $ curl -X GET "http://localhost:3002/metrics/orders" -H "X-CLIENT-ID: test-customer-1" -H "X-API-KEY: sk_test.some.secret.key"
 ```
-
-```
-
-```
