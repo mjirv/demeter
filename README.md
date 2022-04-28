@@ -10,6 +10,8 @@
       - [GET `/metrics`](#get-metrics)
       - [POST `/metrics/:metric_name`](#post-metricsmetric_name)
 
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
 ## About
 
 Generates a REST API (including a GraphQL endpoint) to query your dbt metrics using https://github.com/dbt-labs/dbt_metrics
@@ -96,4 +98,8 @@ KABLE_ENV=TEST
 
 ```json
 $ curl -X GET "http://localhost:3002/metrics/orders" -H "X-CLIENT-ID: test-customer-1" -H "X-API-KEY: sk_test.some.secret.key"
+```
+
+```
+
 ```
