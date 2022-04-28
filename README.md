@@ -1,5 +1,7 @@
 # dbt Metrics API
 
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
 - [dbt Metrics API](#dbt-metrics-api)
   - [About](#about)
   - [Installation](#installation)
@@ -96,4 +98,8 @@ KABLE_ENV=TEST
 
 ```json
 $ curl -X GET "http://localhost:3002/metrics/orders" -H "X-CLIENT-ID: test-customer-1" -H "X-API-KEY: sk_test.some.secret.key"
+```
+
+```
+
 ```

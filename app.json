@@ -1,0 +1,7 @@
+{
+  "name": "dbt Metrics API",
+  "description": "A REST/GraphQL API for your dbt metrics layer",
+  "repository": "https://github.com/mjirv/dbt-metrics-api",
+  "logo": "https://node-js-sample.herokuapp.com/node.png",
+  "keywords": ["dbt", "metrics", "api", "express"]
+}

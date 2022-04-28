@@ -2,7 +2,7 @@
 FROM node:18
 
 WORKDIR /usr/app
-COPY ./ /usr/app
+COPY ./server/ /usr/app
 
 RUN apt-get update && apt-get install -y \
   python3 \
