@@ -1,6 +1,6 @@
 # dbt Metrics API
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/mjirv/dbt-metrics-api/feat-codex-graphql)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 - [dbt Metrics API](#dbt-metrics-api)
   - [About](#about)
