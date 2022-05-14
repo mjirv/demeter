@@ -171,10 +171,11 @@ export default class DbtLocalMetricService implements DbtMetricService {
         }
       )
         .trimEnd()
-        .match(/\{.*\}/i)
+        .match(/\{.*\}/g)
         ?.toString()
-        .replace(/\n/g, ',') +
+    +
       ']';
+
     let metrics = JSON.parse(res) as DBTResource[];
     if (type) {
       metrics = metrics.filter(metric => metric.type === type);

@@ -68,8 +68,9 @@ export default class DbtLocalMetricService {
                     env: Object.assign(Object.assign({}, process.env), this.credentials),
                 })
                     .trimEnd()
-                    .match(/\{.*\}/i)) === null || _a === void 0 ? void 0 : _a.toString().replace(/\n/g, ',')) +
-                ']';
+                    .match(/\{.*\}/g)) === null || _a === void 0 ? void 0 : _a.toString())
+                +
+                    ']';
             let metrics = JSON.parse(res);
             if (type) {
                 metrics = metrics.filter(metric => metric.type === type);
