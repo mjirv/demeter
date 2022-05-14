@@ -86,28 +86,34 @@ export default class DbtLocalMetricService {
         this.queryMetric = (params) => {
             console.debug(`called queryMetric with params ${JSON.stringify(params)}`);
             const { metric_name, grain, dimensions, start_date, end_date, format = 'json', } = params;
-            const raw_output = execFileSync('dbt', [
-                'run-operation',
-                ...(this.target ? ['--target', this.target] : []),
-                ...(this.profile ? ['--profile', this.profile] : []),
-                ...(this.dbtProfilePath ? ['--profiles-dir', this.dbtProfilePath] : []),
-                'dbt_metrics_api.run_metric',
-                '--args',
-                `${JSON.stringify({
-                    metric_name,
-                    grain,
-                    dimensions,
-                    start_date,
-                    end_date,
-                    format,
-                })}`,
-            ], {
-                cwd: this.dbtProjectPath,
-                encoding: 'utf-8',
-                env: Object.assign(Object.assign({}, process.env), this.credentials),
-            }).toString();
-            const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
-            return JSON.parse(raw_output.slice(raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length));
+            try {
+                const raw_output = execFileSync('dbt', [
+                    'run-operation',
+                    ...(this.target ? ['--target', this.target] : []),
+                    ...(this.profile ? ['--profile', this.profile] : []),
+                    ...(this.dbtProfilePath ? ['--profiles-dir', this.dbtProfilePath] : []),
+                    'dbt_metrics_api.run_metric',
+                    '--args',
+                    `${JSON.stringify({
+                        metric_name,
+                        grain,
+                        dimensions,
+                        start_date,
+                        end_date,
+                        format,
+                    })}`,
+                ], {
+                    cwd: this.dbtProjectPath,
+                    encoding: 'utf-8',
+                    env: Object.assign(Object.assign({}, process.env), this.credentials),
+                }).toString();
+                const BREAK_STRING = '<<<MAPI-BEGIN>>>\n';
+                return JSON.parse(raw_output.slice(raw_output.indexOf(BREAK_STRING) + BREAK_STRING.length));
+            }
+            catch (error) {
+                console.error("An error occurred while querying a metric", error);
+                throw new Error(error.stdout);
+            }
         };
         const { dbtProjectPath, target, profile, profileVariables } = props;
         if (!dbtProjectPath)
