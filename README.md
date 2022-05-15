@@ -44,7 +44,7 @@ Demeter gives you a REST API (including a GraphQL endpoint) to query your dbt me
 1. **📦 Install dbt-metrics-api**
    - Add the following to your dbt project's `packages.yml` file:
    ```yaml
-   - git: "https://github.com/mjirv/dbt-metrics-api.git"
+   - git: "https://github.com/mjirv/demeter.git"
      revision: main
    ```
    - Run `dbt deps`
