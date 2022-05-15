@@ -12,7 +12,7 @@ export interface DBTResource {
     label: string;
     description: string;
     type: string;
-    time_grains: string[];
+    time_grains: Grain[];
     dimensions: string[];
     filters: string[];
     unique_id: string;
