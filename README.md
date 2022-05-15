@@ -45,7 +45,7 @@ Generates a REST API (including a GraphQL endpoint) to query your dbt metrics us
    ```
    - Run `dbt deps`
 2. **🌄 Update environment variables** - Copy `server/.example.env` to `server/.env` and (if needed) update the environment variables with your connection details and dbt profile
-3. **✅ Run** - `cd dbt_packages/dbt_metrics_api/server && node dist/`
+3. **✅ Run** - `cd dbt_packages/dbt_metrics_api/server && npm i && node dist/`
 
 ## Usage
 

@@ -50,9 +50,9 @@ kable && app.use(kable.authenticate);
 // Copy and initialize the dbt repo from Github if needed
 if (process.env.GITHUB_REPOSITORY) {
   await githubService.clone(process.env.GITHUB_REPOSITORY);
+  metricService.installMetricsPackage();
 }
 
-metricService.installMetricsPackage();
 graphqlInit();
 app.use('/metrics', metrics);
 app.use('/graphql', graphql);
