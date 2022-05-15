@@ -1,6 +1,6 @@
 /* GraphQL methods */
 import { graphqlHTTP } from 'express-graphql';
-import { GraphQLFloat, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLSchema, GraphQLString, } from 'graphql';
+import { GraphQLEnumType, GraphQLFloat, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLSchema, GraphQLString, } from 'graphql';
 import metricService from '../services/MetricService/index.js';
 import express from 'express';
 const router = express.Router();
@@ -28,6 +28,7 @@ export function graphqlInit() {
     catch (error) {
         console.warn(error);
     }
+    const GrainType = new GraphQLEnumType({ name: "Grain", values: Object.fromEntries(["day", "week", "month", "quarter", "year"].map(grain => [grain, { value: grain }])) });
     const QueryType = new GraphQLObjectType({
         name: 'Query',
         fields: Object.assign({}, Object.fromEntries(availableMetrics.map(metric => [
@@ -35,7 +36,9 @@ export function graphqlInit() {
             {
                 type: new GraphQLList(metricToGraphQLType(metric)),
                 args: {
-                    grain: { type: new GraphQLNonNull(GraphQLString) },
+                    grain: {
+                        type: new GraphQLNonNull(GrainType)
+                    },
                     start_date: { type: GraphQLString },
                     end_date: { type: GraphQLString },
                 },

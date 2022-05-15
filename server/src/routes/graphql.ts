@@ -3,12 +3,15 @@
 import {graphqlHTTP} from 'express-graphql';
 import {
   FieldNode,
+  GraphQLEnumType,
   GraphQLFloat,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
+  GraphQLScalarType,
   GraphQLSchema,
   GraphQLString,
+  GraphQLUnionType,
   printSchema,
 } from 'graphql';
 import metricService from '../services/MetricService/index.js';
@@ -51,6 +54,8 @@ export function graphqlInit() {
     console.warn(error);
   }
 
+  const GrainType = new GraphQLEnumType({ name: "Grain", values: Object.fromEntries(["day", "week", "month", "quarter", "year"].map(grain => [grain, { value: grain }])) })
+
   const QueryType = new GraphQLObjectType({
     name: 'Query',
     fields: {
@@ -60,7 +65,9 @@ export function graphqlInit() {
           {
             type: new GraphQLList(metricToGraphQLType(metric)),
             args: {
-              grain: {type: new GraphQLNonNull(GraphQLString)},
+              grain: {
+                type: new GraphQLNonNull(GrainType)
+              },
               start_date: {type: GraphQLString},
               end_date: {type: GraphQLString},
             },
