@@ -4,7 +4,7 @@ import getProfileVariablesFromEnv from './utils/getProfileVariablesFromEnvironme
 
 const profileVariables = getProfileVariablesFromEnv();
 const metricService = new DbtLocalMetricService({
-  dbtProjectPath: gitService.dir || process.env.DBT_PROJECT_PATH,
+  dbtProjectPath: gitService.dir || process.env.DBT_PROJECT_PATH || '../../..',
   target: process.env.DBT_TARGET,
   profileVariables,
 });
