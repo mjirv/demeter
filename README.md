@@ -4,6 +4,8 @@
 
 Demeter turns your dbt project into a metrics platform. You get a REST/GraphQL API so you can query, build interactive apps, and use your metrics from anywhere.
 
+[View live demo](https://dbt-demeter-demo.herokuapp.com/graphql)
+
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 - [Demeter](#demeter)
@@ -24,7 +26,7 @@ Demeter turns your dbt project into a metrics platform. You get a REST/GraphQL A
 
 ## About
 
-Generates a REST API (including a GraphQL endpoint) to query your dbt metrics using https://github.com/dbt-labs/dbt_metrics
+Demeter gives you a REST API (including a GraphQL endpoint) to query your dbt metrics
 
 ![graphql](https://user-images.githubusercontent.com/5953854/158102577-f935b647-88f4-4180-b161-81f86a454ccb.PNG)
 
@@ -32,7 +34,7 @@ Generates a REST API (including a GraphQL endpoint) to query your dbt metrics us
 
 ### Prerequisites
 
-1. A [dbt project](https://docs.getdbt.com/tutorial/setting-up)
+1. A [dbt project](https://docs.getdbt.com/tutorial/setting-up) with [metrics](https://github.com/dbt-labs/dbt_metrics)
 2. Node
    - Run `node --version`
    - If there is no output or node is not found, follow the steps at https://heynode.com/tutorial/install-nodejs-locally-nvm/ to install Node.
