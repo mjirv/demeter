@@ -1,8 +1,13 @@
-# dbt Metrics API
+# Demeter
+
+## The dbt Metrics API
+
+Generates a REST API (including a GraphQL endpoint) to query your dbt metrics using https://github.com/dbt-labs/dbt_metrics
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
-- [dbt Metrics API](#dbt-metrics-api)
+- [Demeter](#demeter)
+  - [The dbt Metrics API](#the-dbt-metrics-api)
   - [About](#about)
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
@@ -89,16 +94,16 @@ To get started:
 1. Sign up at https://kable.io (the free tier includes unlimited test requests and up to 10,000 live requests)
 2. Note your client ID and secret and add them to your `server/.env.local` file:
 
-```bash
-KABLE_CLIENT_ID=
-KABLE_CLIENT_SECRET=
+   ```bash
+   KABLE_CLIENT_ID=
+   KABLE_CLIENT_SECRET=
 
-# you will need to set to LIVE in production
-KABLE_ENV=TEST
-```
+   # you will need to set to LIVE in production
+   KABLE_ENV=TEST
+   ```
 
 3. Requests will now require authentication with a customer ID and secret that you set up in your Kable dashboard using `X-CLIENT-ID` and `X-API-KEY` headers
 
-```json
-$ curl -X GET "http://localhost:3002/metrics/orders" -H "X-CLIENT-ID: test-customer-1" -H "X-API-KEY: sk_test.some.secret.key"
-```
+   ```json
+   $ curl -X GET "http://localhost:3002/metrics/orders" -H "X-CLIENT-ID: test-customer-1" -H "X-API-KEY: sk_test.some.secret.key"
+   ```
