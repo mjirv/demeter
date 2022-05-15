@@ -11,7 +11,7 @@ Demeter turns your dbt project into a metrics platform. You get a REST/GraphQL A
   - [About](#about)
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
-    - [Quickstart](#quickstart)
+    - [Quickstart (local)](#quickstart-local)
   - [Usage](#usage)
     - [Routes](#routes)
       - [GET `/metrics`](#get-metrics)
@@ -35,7 +35,7 @@ Generates a REST API (including a GraphQL endpoint) to query your dbt metrics us
    - Run `node --version`
    - If there is no output or node is not found, follow the steps at https://heynode.com/tutorial/install-nodejs-locally-nvm/ to install Node.
 
-### Quickstart
+### Quickstart (local)
 
 1. **📦 Install dbt-metrics-api**
    - Add the following to your dbt project's `packages.yml` file:
@@ -44,8 +44,9 @@ Generates a REST API (including a GraphQL endpoint) to query your dbt metrics us
      revision: main
    ```
    - Run `dbt deps`
-2. **🌄 Update environment variables** - Copy `server/.example.env` to `server/.env` and (if needed) update the environment variables with your connection details and dbt profile
-3. **✅ Run** - `cd dbt_packages/dbt_metrics_api/server && npm i && node dist/`
+2. **✅ Run**
+   - Run `cd dbt_packages/dbt_metrics_api/server && npm i && node dist/`
+   - Navigate to http://localhost:3001/graphql in your browser to start querying your API!
 
 ## Usage
 
@@ -58,7 +59,7 @@ dbt-metrics-api has 4 routes:
 - returns a JSON array of your project's metrics
 - supports "name", "type", "model", and "package_name" query strings for filtering
 
-      $ curl -X GET "http://localhost:3002/metrics?type=count&package_name=jaffle_shop"
+      $ curl -X GET "http://localhost:3001/metrics?type=count&package_name=jaffle_shop"
 
       [{"unique_id":"metric.jaffle_shop.orders","package_name":"jaffle_shop","model":"ref('orders')","name":"orders","description":"The number of orders","label":"Orders","type":"count","filters":[],"time_grains":["day","week","month","quarter","year"],"dimensions":["status","customer_id"]},{"unique_id":"metric.jaffle_shop.orders2","package_name":"jaffle_shop","model":"ref('orders')","name":"orders2","description":"The number of orders","label":"Orders","type":"count","filters":[],"time_grains":["day","week","month","quarter","year"],"dimensions":["status","customer_id"]}]
 
@@ -66,7 +67,7 @@ dbt-metrics-api has 4 routes:
 
 - returns a JSON object with keys `unique_id, package_name, model, name, description, label, type, filters, time_grains, dimensions`
 
-      $ curl -X GET "http://localhost:3002/metrics/orders"
+      $ curl -X GET "http://localhost:3001/metrics/orders"
 
       {"unique_id":"metric.jaffle_shop.orders","package_name":"jaffle_shop","model":"ref('orders')","name":"orders","description":"The number of orders","label":"Orders","type":"count","filters":[],"time_grains":["day","week","month","quarter","year"],"dimensions":["status","customer_id"]}
 
@@ -76,14 +77,14 @@ dbt-metrics-api has 4 routes:
 - Accepts a JSON object in the request body with the following properties: `grain, dimensions, start_date, end_date` (`start_date` and `end_date` are optional)
 - Returns a JSON object or CSV depending on your `Accept:` header (`application/json` or `text/csv`)
 
-      $ curl http://localhost:3002/metrics/orders -H "Content-Type: application/json" -H "Accept: application/json" -d '{"grain": "year", "start_date": "2017-01-01", "end_date": "2019-01-01"}'
+      $ curl http://localhost:3001/metrics/orders -H "Content-Type: application/json" -H "Accept: application/json" -d '{"grain": "year", "start_date": "2017-01-01", "end_date": "2019-01-01"}'
 
       [{"period": "2017-01-01", "orders": 0.0}, {"period": "2018-01-01", "orders": 99.0}, {"period": "2019-01-01", "orders": 0.0}]
 
 #### POST `/graphql`
 
 - GraphQL API for your metrics
-- Visit `YOUR_SERVER_PATH/graphql` (e.g. http://localhost:3002/graphql) to see the GraphiQL client and schema
+- Visit `YOUR_SERVER_PATH/graphql` (e.g. http://localhost:3001/graphql) to see the GraphiQL client and schema
 
 ### Authentication
 
@@ -105,5 +106,5 @@ To get started:
 3. Requests will now require authentication with a customer ID and secret that you set up in your Kable dashboard using `X-CLIENT-ID` and `X-API-KEY` headers
 
    ```json
-   $ curl -X GET "http://localhost:3002/metrics/orders" -H "X-CLIENT-ID: test-customer-1" -H "X-API-KEY: sk_test.some.secret.key"
+   $ curl -X GET "http://localhost:3001/metrics/orders" -H "X-CLIENT-ID: test-customer-1" -H "X-API-KEY: sk_test.some.secret.key"
    ```
