@@ -2,7 +2,7 @@
 
 ## The dbt Metrics API
 
-Generates a REST API (including a GraphQL endpoint) to query your dbt metrics using https://github.com/dbt-labs/dbt_metrics
+Demeter turns your dbt project into a metrics platform. You get a REST/GraphQL API so you can query, build interactive apps, and use your metrics from anywhere.
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
