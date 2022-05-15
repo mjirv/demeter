@@ -18,6 +18,8 @@ Demeter turns your dbt project into a metrics platform. You get a REST/GraphQL A
       - [GET `/metrics/:metric_name`](#get-metricsmetric_name)
       - [POST `/metrics/:metric_name`](#post-metricsmetric_name)
       - [POST `/graphql`](#post-graphql)
+  - [Advanced](#advanced)
+    - [Running a production instance](#running-a-production-instance)
     - [Authentication](#authentication)
 
 ## About
@@ -85,6 +87,14 @@ dbt-metrics-api has 4 routes:
 
 - GraphQL API for your metrics
 - Visit `YOUR_SERVER_PATH/graphql` (e.g. http://localhost:3001/graphql) to see the GraphiQL client and schema
+
+## Advanced
+
+### Running a production instance
+
+On your favorite cloud hosting service (e.g. Heroku or GCP Cloud Run) install this repo via the GitHub URL.
+
+Look in `.example.env` for the available environment variables and configure them as needed.
 
 ### Authentication
 
