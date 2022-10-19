@@ -54,7 +54,7 @@ export function graphqlInit() {
     console.warn(error);
   }
 
-  const GrainType = new GraphQLEnumType({ name: "Grain", values: Object.fromEntries(["day", "week", "month", "quarter", "year"].map(grain => [grain, { value: `date_${grain}` }])) })
+  const GrainType = new GraphQLEnumType({ name: "Grain", values: Object.fromEntries(["day", "week", "month", "quarter", "year"].map(grain => [grain, { value: grain }])) })
 
   const QueryType = new GraphQLObjectType({
     name: 'Query',
@@ -101,7 +101,6 @@ export function graphqlInit() {
         .filter(field => !NON_DIMENSION_FIELDS.includes(field)),
       ...args,
     });
-    console.info(res);
     res.period = res.date_day || res.date_week || res.date_month || res.date_quarter || res.date_year;
     return res;
   }
