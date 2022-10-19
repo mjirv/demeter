@@ -101,6 +101,7 @@ export function graphqlInit() {
         .filter(field => !NON_DIMENSION_FIELDS.includes(field)),
       ...args,
     });
+    console.info(res);
     res.period = res.date_day || res.date_week || res.date_month || res.date_quarter || res.date_year;
     return res;
   }
