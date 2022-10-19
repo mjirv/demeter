@@ -94,13 +94,15 @@ export function graphqlInit() {
   ) {
     const NON_DIMENSION_FIELDS = [fieldName, 'period'];
     const [node] = fieldNodes;
-    return metricService.queryMetric({
+    const res = metricService.queryMetric({
       metric_name: fieldName,
       dimensions: node.selectionSet?.selections
         .map(selection => (selection as FieldNode).name.value)
         .filter(field => !NON_DIMENSION_FIELDS.includes(field)),
       ...args,
     });
+    res.period = res.date_day || res.date_week || res.date_month || res.date_quarter || res.date_year;
+    return res;
   }
 
   const root = availableMetrics.reduce((prev, current) => {
