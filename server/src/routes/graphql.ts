@@ -54,7 +54,7 @@ export function graphqlInit() {
     console.warn(error);
   }
 
-  const GrainType = new GraphQLEnumType({ name: "Grain", values: Object.fromEntries(["day", "week", "month", "quarter", "year"].map(grain => [grain, { value: grain }])) })
+  const GrainType = new GraphQLEnumType({ name: "Grain", values: Object.fromEntries(["day", "week", "month", "quarter", "year"].map(grain => [grain, { value: `date_${grain}` }])) })
 
   const QueryType = new GraphQLObjectType({
     name: 'Query',
