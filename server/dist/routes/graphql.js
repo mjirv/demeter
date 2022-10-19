@@ -18,7 +18,7 @@ let graphqlMiddleware = (req, res, next) => {
 export function graphqlInit() {
     const metricToGraphQLType = (metric) => new GraphQLObjectType({
         name: metric.name,
-        fields: Object.assign({ period: { type: GraphQLString }, [metric.name]: { type: GraphQLFloat } }, Object.fromEntries(metric.dimensions.map(dimension => [dimension, { type: GraphQLString }]) // TODO: they might be other things
+        fields: Object.assign({ date_day: { type: GraphQLString }, date_week: { type: GraphQLString }, date_month: { type: GraphQLString }, date_quarter: { type: GraphQLString }, date_year: { type: GraphQLString }, [metric.name]: { type: GraphQLFloat } }, Object.fromEntries(metric.dimensions.map(dimension => [dimension, { type: GraphQLString }]) // TODO: they might be other things
         )),
     });
     let availableMetrics = [];
@@ -50,11 +50,10 @@ export function graphqlInit() {
     });
     function metricResolver(args, _context, { fieldName, fieldNodes }) {
         var _a;
-        const NON_DIMENSION_FIELDS = [fieldName, 'period'];
+        const NON_DIMENSION_FIELDS = [fieldName, 'date_day', 'date_week', 'date_month', 'date_quarter', 'date_year'];
         const [node] = fieldNodes;
         const res = metricService.queryMetric(Object.assign({ metric_name: fieldName, dimensions: (_a = node.selectionSet) === null || _a === void 0 ? void 0 : _a.selections.map(selection => selection.name.value).filter(field => !NON_DIMENSION_FIELDS.includes(field)) }, args));
         console.info(res);
-        res.period = res.date_day || res.date_week || res.date_month || res.date_quarter || res.date_year;
         return res;
     }
     const root = availableMetrics.reduce((prev, current) => {

@@ -37,7 +37,11 @@ export function graphqlInit() {
     new GraphQLObjectType({
       name: metric.name,
       fields: {
-        period: {type: GraphQLString}, // TODO: should this be date?
+        date_day: {type: GraphQLString}, // TODO: should this be date?
+        date_week: {type: GraphQLString},
+        date_month: {type: GraphQLString},
+        date_quarter: {type: GraphQLString},
+        date_year: {type: GraphQLString},
         [metric.name]: {type: GraphQLFloat},
         // eslint-disable-next-line node/no-unsupported-features/es-builtins
         ...Object.fromEntries(
@@ -92,7 +96,7 @@ export function graphqlInit() {
     _context: never,
     {fieldName, fieldNodes}: {fieldName: string; fieldNodes: FieldNode[]}
   ) {
-    const NON_DIMENSION_FIELDS = [fieldName, 'period'];
+    const NON_DIMENSION_FIELDS = [fieldName, 'date_day', 'date_week', 'date_month', 'date_quarter', 'date_year'];
     const [node] = fieldNodes;
     const res = metricService.queryMetric({
       metric_name: fieldName,
@@ -102,7 +106,6 @@ export function graphqlInit() {
       ...args,
     });
     console.info(res);
-    res.period = res.date_day || res.date_week || res.date_month || res.date_quarter || res.date_year;
     return res;
   }
 
